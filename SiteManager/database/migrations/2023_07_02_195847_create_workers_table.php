@@ -12,7 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('workers', function (Blueprint $table) {
-            $table->id();
+            $table->id('worker_id');
+            $table->string('name');
+            $table->string('phone_number')->unique();
+            $table->timestamp('date_registered')->nullable();
+            $table->string('pay_rate')->nullable();
+            $table->unsignedBigInteger('site_manager_id');
+            $table->foreign('site_manager_id')->references('site_manager_id')->on('site_managers');
             $table->timestamps();
         });
     }
