@@ -13,13 +13,7 @@ class WorkerController extends Controller
      */
     public function index()
     {
-        $siteManagerId = auth()->user()->siteManagerId;
-        $workers = Worker::where('siteManagerId', $siteManagerId)->get();
-        return response([
-            'message' => 'Retrieved successfully',
-            'workers' => $workers,
-        ], 200);
-        
+
     }
 
     /**
@@ -31,9 +25,10 @@ class WorkerController extends Controller
             'name' => 'required|string',
             'phoneNumber' => 'required|unique:workers|numeric',
             'payRate' => 'required|numeric',
+            'siteManagerId' => 'required|numeric', //this should be hidden from the user, it should be gotten from the token
         ]);
 
-        $siteManagerId = auth()->user()->siteManagerId;
+       
         $dateCreated = date('Y-m-d H:i:s'); 
 
         $worker = Worker::create([
@@ -41,7 +36,7 @@ class WorkerController extends Controller
             'phoneNumber' => $request->phoneNumber,
             'dateRegistered' => $dateCreated,
             'payRate' => $request->payRate,
-            'siteManagerId' => $siteManagerId,
+            'siteManagerId' => $request->siteManagerId,
         ]);
 
         return response([
@@ -70,7 +65,7 @@ class WorkerController extends Controller
 
         return response([
             'message' => 'Retrieved successfully',
-            'workers' => $workers,
+            'workers' => $workers->only(['name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']),
         ], 200);
     } 
 
@@ -79,7 +74,22 @@ class WorkerController extends Controller
      */
     public function show(string $id) 
     {
-        
+       
+       // $siteManagerId = auth()->user()->siteManagerId;
+
+        $worker = Worker::where('siteManagerId', $id)
+            ->first(); 
+
+        if(!$worker){
+            return response([
+                'message' => 'No workers found',
+            ], 404);
+        }
+
+        return response([
+            'message' => 'Retrieved successfully',
+            'worker' => $worker->only(['name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId'])
+        ], 200);
 
     }
 

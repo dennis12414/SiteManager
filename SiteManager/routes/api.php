@@ -17,12 +17,15 @@ use Illuminate\Support\Facades\Route;
 */
 Route::post('/register', [AuthenticationController::class, 'register']);
 Route::post('/verify', [AuthenticationController::class, 'verify']);
-Route::post('setPassword', [AuthenticationController::class, 'setPassword']);
+Route::post('/setPassword', [AuthenticationController::class, 'setPassword']);
+
 Route::post('/login', [AuthenticationController::class, 'login']);
-Route::Get('/projects', [ProjectController::class, 'index']);
+Route::post('/logout', [AuthenticationController::class, 'logout'])->middleware('auth:sanctum');
+
+Route::Get('/projects/{id}', [ProjectController::class, 'show']);
 Route::post('/projects', [ProjectController::class, 'store'])->middleware('auth:sanctum');
 
-Route::Get('/workers',[WorkerController::class, 'index']);
+Route::Get('/workers/{id}',[WorkerController::class, 'show']);
 Route::post('/workers',[WorkerController::class, 'store'])->middleware('auth:sanctum');
 Route::Get('/workers/search/{name}',[WorkerController::class, 'search'])->middleware('auth:sanctum');
 

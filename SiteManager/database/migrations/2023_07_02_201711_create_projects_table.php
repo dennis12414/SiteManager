@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id('projectId');
             $table->string('projectName');
             $table->string('projectDescription');
-            $table->timestamp('startDate')->nullable();
-            $table->timestamp('endDate')->nullable();
+            $table->date('startDate')->nullable();
+            $table->date('endDate')->nullable();
             $table->unsignedBigInteger('siteManagerId');
             $table->foreign('siteManagerId')->references('siteManagerId')->on('siteManagers');
             $table->timestamps();
