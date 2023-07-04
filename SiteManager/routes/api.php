@@ -16,8 +16,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 Route::post('/register', [AuthenticationController::class, 'register']);
+Route::post('/verify', [AuthenticationController::class, 'verify']);
+Route::post('setPassword', [AuthenticationController::class, 'setPassword']);
 Route::post('/login', [AuthenticationController::class, 'login']);
-
 Route::Get('/projects', [ProjectController::class, 'index']);
 Route::post('/projects', [ProjectController::class, 'store'])->middleware('auth:sanctum');
 

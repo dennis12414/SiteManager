@@ -21,6 +21,8 @@ class SiteManager extends Authenticatable
         'name',
         'email',
         'phoneNumber',
+        'otp',
+        'password',
     ];
 
     public function projects()

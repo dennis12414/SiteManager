@@ -18,41 +18,113 @@ class AuthenticationController extends Controller
             'email' => 'required|unique:siteManagers|email',
             'phoneNumber' => 'required|unique:siteManagers|numeric',
         ]);
-        
+
+        $otp = rand(100000, 999999);
         $siteManager = SiteManager::create([
             'name' => $request->name,
             'email' => $request->email,
-            'phoneNumber' => Hash::make($request->phoneNumber),
-        ]);   
+            'phoneNumber' => $request->phoneNumber,
+            'otp' => $otp,
+        ]);
 
+        $message = "Your OTP is: " . $otp;
+        //$this->sendSMS($request->phoneNumber, $message);
 
         return response([
-            'message' => 'Site Manager created successfully',
-            'siteManager' => $siteManager,
+            'message' => 'An OTP has been sent to your phone number',
+            //for demo purposes only
+            'otp' => $otp,
         ], 201);
+
+    }
+
+    public function verify(Request $request){
+        $request->validate([
+            'name' => 'required',
+            'phoneNumber' => 'required|digits:10',
+            'otp' => 'required|digits:6',
+        ]);
+
+        $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)->first();
         
+        // Verify that the provided OTP matches the stored OTP
+        if ($siteManager->otp != $request->otp) {
+            return response([
+                'message' => 'Invalid OTP',
+               
+            ], 401);
+        }else{
+            $siteManager->otp = null;
+            $siteManager->save();
+            return response([
+                'message' => 'OTP verified successfully',
+                'siteManager' => $siteManager,
+            ], 201);
+        }
+
+    }
+
+    public function setPassword(Request $request){
+        $request->validate([
+            'name' => 'required',
+            'phoneNumber' => 'required|digits:10',
+            'password' => 'required|string|min:8',
+        ]);
+
+        $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)->first();
+        $siteManager->password = Hash::make($request->password);
+        $siteManager->save();
+
+        return response([
+            'message' => 'Password set successfully',
+            'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
+        ], 201);
+
     }
 
     public function login(Request $request){
         $request->validate([
-            'name' => 'required',
             'phoneNumber' => 'required|digits:10',
+            'password' => 'required|string|min:8'
         ]);
 
-        $siteManager = SiteManager::where('name', $request->name)->first(); 
-        if(!$siteManager || !Hash::check($request->phoneNumber, $siteManager->phoneNumber)){ 
+        $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)->first();
+        
+        if(!$siteManager || !Hash::check($request->password, $siteManager->password)){
             return response([
                 'message' => 'Invalid credentials'
             ], 401);
         }
         else{
-            $token = $siteManager->createToken('siteManagerToken')->plainTextToken;
+            $token = $siteManager->createToken('auth_token')->plainTextToken;
             return response([
-                'message' => 'logged in successfully',
-                'siteManager' => $siteManager,
+                'message' => 'Logged in successfully',
+                'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
                 'token' => $token,
             ], 201);
         }
-        
+
     }
+
+
+
+    public function logout(Request $request){
+        auth()->user()->tokens()->delete();
+
+        return response([
+            'message' => 'logged out successfully',
+        ], 201);
+    }
+
+    public function sendSMS($phoneNumber, $message){
+    
+
+      
+        
+       
+
+ }
 }
+
+    
+
