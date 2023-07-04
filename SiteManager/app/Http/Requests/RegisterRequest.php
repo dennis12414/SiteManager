@@ -23,8 +23,8 @@ class RegisterRequest extends FormRequest
     {
         return [
             'name' => 'required|string',
-            'email' => 'required|unique:site_managers|email',
-            'phone_number' => 'required|unique:site_managers|numeric',
+            'email' => 'required|unique:siteManagers|email',
+            'phoneNumber' => 'required|unique:siteManagers|numeric',
         ];
     }
 }

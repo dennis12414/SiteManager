@@ -2,6 +2,7 @@
 use App\Http\Controllers\Auth\AuthenticationController;
 use App\Http\Controllers\Project\ProjectController;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Worker\WorkerController;
 use Illuminate\Support\Facades\Route; 
 
 /*
@@ -16,8 +17,14 @@ use Illuminate\Support\Facades\Route;
 */
 Route::post('/register', [AuthenticationController::class, 'register']);
 Route::post('/login', [AuthenticationController::class, 'login']);
+
 Route::Get('/projects', [ProjectController::class, 'index']);
 Route::post('/projects', [ProjectController::class, 'store'])->middleware('auth:sanctum');
+
+Route::Get('/workers',[WorkerController::class, 'index']);
+Route::post('/workers',[WorkerController::class, 'store'])->middleware('auth:sanctum');
+Route::Get('/workers/search/{name}',[WorkerController::class, 'search'])->middleware('auth:sanctum');
+
 
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

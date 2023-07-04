@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('site_managers', function (Blueprint $table) { 
-            $table->id('site_manager_id');
+        Schema::create('siteManagers', function (Blueprint $table) { 
+            $table->id('siteManagerId');
             $table->string('name');
             $table->string('email')->unique();
-            $table->string('phone_number')->unique();
+            $table->string('phoneNumber')->unique();
             $table->rememberToken();
             $table->timestamps();
         });
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('site_managers');
+        Schema::dropIfExists('siteManagers');
     }
 };

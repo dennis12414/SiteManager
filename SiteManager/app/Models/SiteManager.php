@@ -13,17 +13,19 @@ class SiteManager extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    protected $primaryKey = 'site_manager_id';
+    protected $table = 'siteManagers';
+
+    protected $primaryKey = 'siteManagerId';
 
     protected $fillable = [
         'name',
         'email',
-        'phone_number',
+        'phoneNumber',
     ];
 
     public function projects()
     {
-        return $this->hasMany(Project::class, 'site_manager_id');
+        return $this->hasMany(Project::class, 'siteManagerId');
     }
     
 }

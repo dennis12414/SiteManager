@@ -27,28 +27,22 @@ class ProjectController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'project_name' => 'required|string',
-            'project_description' => 'required|string',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date',
+            'projectName' => 'required|string',
+            'projectDescription' => 'required|string',
+            'startDate' => 'required|date',
+            'endDate' => 'required|date',
         ]);
 
-        //$site_manager_id = auth()->user()->id; //auth means authentication, user means the user who is currently logged in, id means the id of the user who is currently logged in
+        //$site_manager_id = auth()->user()->id; 
 
         auth()->user()->projects()->create([
-            'project_name' => $request->project_name,
-            'project_description' => $request->project_description,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
+            'projectName' => $request->projectName,
+            'projectDescription' => $request->projectDescription,
+            'startDate' => $request->startDate,
+            'endDate' => $request->endDate,
         ]);
 
-        // $project = Project::create([
-        //     'project_name' => $request->project_name,
-        //     'project_description' => $request->project_description,
-        //     'start_date' => $request->start_date,
-        //     'end_date' => $request->end_date,
-        //     'site_manager_id' => $site_manager_id,
-        // ]);
+
 
         
     }

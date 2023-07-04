@@ -23,7 +23,7 @@ class LoginRequest extends FormRequest
     {
         return [
             'name' => 'required',
-            'phone_number' => 'required|digits:10',
+            'phoneNumber' => 'required|digits:10',
         ];
     }
 }

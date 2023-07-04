@@ -15,17 +15,17 @@ class Project extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'project_name',
-        'project_description',
-        'start_date',
-        'end_date',
-        'site_manager_id',
+        'projectName',
+        'projectDescription',
+        'startDate',
+        'endDate',
+        'siteManagerId',
 
     ];
     
     public function siteManager()
     {
-        return $this->belongsTo(SiteManager::class, 'site_manager_id');
+        return $this->belongsTo(SiteManager::class, 'siteManagerId');
     }
 
 

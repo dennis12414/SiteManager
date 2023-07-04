@@ -15,20 +15,20 @@ class AuthenticationController extends Controller
     public function register(Request $request){
         $request->validate([
             'name' => 'required|string',
-            'email' => 'required|unique:site_managers|email',
-            'phone_number' => 'required|unique:site_managers|numeric',
+            'email' => 'required|unique:siteManagers|email',
+            'phoneNumber' => 'required|unique:siteManagers|numeric',
         ]);
         
         $siteManager = SiteManager::create([
             'name' => $request->name,
             'email' => $request->email,
-            'phone_number' => Hash::make($request->phone_number),
+            'phoneNumber' => Hash::make($request->phoneNumber),
         ]);   
 
 
         return response([
             'message' => 'Site Manager created successfully',
-            'site_manager' => $siteManager,
+            'siteManager' => $siteManager,
         ], 201);
         
     }
@@ -36,20 +36,20 @@ class AuthenticationController extends Controller
     public function login(Request $request){
         $request->validate([
             'name' => 'required',
-            'phone_number' => 'required|digits:10',
+            'phoneNumber' => 'required|digits:10',
         ]);
 
         $siteManager = SiteManager::where('name', $request->name)->first(); 
-        if(!$siteManager || !Hash::check($request->phone_number, $siteManager->phone_number)){ 
+        if(!$siteManager || !Hash::check($request->phoneNumber, $siteManager->phoneNumber)){ 
             return response([
                 'message' => 'Invalid credentials'
             ], 401);
         }
         else{
-            $token = $siteManager->createToken('site_manager_token')->plainTextToken;
+            $token = $siteManager->createToken('siteManagerToken')->plainTextToken;
             return response([
                 'message' => 'logged in successfully',
-                'site_manager' => $siteManager,
+                'siteManager' => $siteManager,
                 'token' => $token,
             ], 201);
         }

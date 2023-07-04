@@ -11,17 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('clock_ins', function (Blueprint $table) {
-            $table->id('clock_id');
+        Schema::create('clockIns', function (Blueprint $table) {
+            $table->id('clockId');
             $table->timestamp('date')->nullable();
-            $table->timestamp('clock_in_time')->nullable();
-            $table->timestamp('clock_out_time')->nullable();
-            $table->unsignedBigInteger('worker_id');
-            $table->unsignedBigInteger('project_id');
-            $table->unsignedBigInteger('site_manager_id');
-            $table->foreign('worker_id')->references('worker_id')->on('workers');
-            $table->foreign('project_id')->references('project_id')->on('projects');
-            $table->foreign('site_manager_id')->references('site_manager_id')->on('site_managers');
+            $table->timestamp('clockInTime')->nullable();
+            $table->timestamp('clockOutTime')->nullable();
+            $table->unsignedBigInteger('workerId');
+            $table->unsignedBigInteger('projectId');
+            $table->unsignedBigInteger('siteManagerId');
+            $table->foreign('workerId')->references('workerId')->on('workers');
+            $table->foreign('projectId')->references('projectId')->on('projects');
+            $table->foreign('siteManagerId')->references('siteManagerId')->on('siteManagers');
             $table->timestamps();
         });
     }
