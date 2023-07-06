@@ -3,6 +3,8 @@ use App\Http\Controllers\Auth\AuthenticationController;
 use App\Http\Controllers\Project\ProjectController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Worker\WorkerController;
+use App\Http\Controllers\ClockIns\ClockInsController;
+use App\Http\Controllers\Report\ReportController;
 use Illuminate\Support\Facades\Route; 
 
 /*
@@ -20,17 +22,20 @@ Route::post('/verify', [AuthenticationController::class, 'verify']);
 Route::post('/setPassword', [AuthenticationController::class, 'setPassword']);
 
 Route::post('/login', [AuthenticationController::class, 'login']);
-Route::post('/logout', [AuthenticationController::class, 'logout'])->middleware('auth:sanctum');
 
-Route::Get('/projects/{id}', [ProjectController::class, 'show']);
-Route::post('/projects', [ProjectController::class, 'store'])->middleware('auth:sanctum');
+Route::Get('/projects/{siteManagerId}', [ProjectController::class, 'show']);
+Route::post('/projects', [ProjectController::class, 'store']);
 
-Route::Get('/workers/{id}',[WorkerController::class, 'show']);
-Route::post('/workers',[WorkerController::class, 'store'])->middleware('auth:sanctum');
-Route::Get('/workers/search/{name}',[WorkerController::class, 'search'])->middleware('auth:sanctum');
+Route::Get('/workers/{siteManagerId}',[WorkerController::class, 'show']);
+Route::post('/workers',[WorkerController::class, 'store']);
+Route::Get('/workers/search/{siteManagerId}/{phoneNumber}',[WorkerController::class, 'search']);
+Route::put('/workers/{siteManagerId}/{phoneNumber}',[WorkerController::class, 'update']);
+
+Route::post('/clockIn',[ClockInsController::class, 'clockIn']);
+Route::post('/clockOut',[ClockInsController::class, 'clockOut']);
+
+Route::Get('/report/{projectId}',[ReportController::class, 'generateReport']);
 
 
 
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
+

@@ -5,17 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Worker extends Model
+class ClockIns extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'workerId';
+    protected $table = 'clockIns';
 
     protected $fillable = [
-        'name',
-        'phoneNumber',
-        'dateRegistered',
-        'payRate',
         'siteManagerId',
+        'projectId',
+        'workerId',
+        'clockInTime',
+        'clockOutTime',
+        'date',
     ];
 }

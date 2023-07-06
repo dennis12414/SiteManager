@@ -20,6 +20,7 @@ class AuthenticationController extends Controller
         ]);
 
         $otp = rand(100000, 999999);
+
         $siteManager = SiteManager::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -28,45 +29,44 @@ class AuthenticationController extends Controller
         ]);
 
         $message = "Your OTP is: " . $otp;
-        //$this->sendSMS($request->phoneNumber, $message);
+        $this->sendSMS($request->phoneNumber, $message);
+
+        $phoneNumber = substr($siteManager->phoneNumber, 0, 4) . "*****" . substr($siteManager->phoneNumber, 8, 2);
 
         return response([
-            'message' => 'An OTP has been sent to your phone number',
-            //for demo purposes only
-            'otp' => $otp,
+            'message' => 'An OTP has been sent to ' . $phoneNumber . '',
+            
         ], 201);
 
     }
 
     public function verify(Request $request){
         $request->validate([
-            'name' => 'required',
             'phoneNumber' => 'required|digits:10',
             'otp' => 'required|digits:6',
         ]);
 
         $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)->first();
         
-        // Verify that the provided OTP matches the stored OTP
         if ($siteManager->otp != $request->otp) {
             return response([
                 'message' => 'Invalid OTP',
                
             ], 401);
-        }else{
-            $siteManager->otp = null;
-            $siteManager->save();
-            return response([
-                'message' => 'OTP verified successfully',
-                'siteManager' => $siteManager,
-            ], 201);
         }
+        
+        $siteManager->otp = null;
+        $siteManager->save();
+        return response([
+            'message' => 'OTP verified successfully',
+            'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
+        ], 201);
+        
 
     }
 
     public function setPassword(Request $request){
         $request->validate([
-            'name' => 'required',
             'phoneNumber' => 'required|digits:10',
             'password' => 'required|string|min:8',
         ]);
@@ -96,34 +96,43 @@ class AuthenticationController extends Controller
             ], 401);
         }
         else{
-            $token = $siteManager->createToken('auth_token')->plainTextToken;
+           
             return response([
                 'message' => 'Logged in successfully',
                 'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
-                'token' => $token,
             ], 201);
         }
 
     }
 
 
-
-    public function logout(Request $request){
-        auth()->user()->tokens()->delete();
-
-        return response([
-            'message' => 'logged out successfully',
-        ], 201);
-    }
-
     public function sendSMS($phoneNumber, $message){
-    
-
-      
         
-       
 
- }
+        $url = "http://172.105.90.112:8080/notification-api/v1/notification/create";
+        $data = array(
+            'notificationCode' => 'PMANAGER-SMS',
+            'clientID' => 1,
+            'message' => $message,
+            'subject' => 'SMS Test',
+            'recepient' => $phoneNumber,
+            'cCrecepients' => '',
+            'bCCrecepients' => '',
+            'type' => 'text',
+        );
+
+        $payload = json_encode($data); 
+
+        $ch = curl_init($url); 
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $result = curl_exec($ch);
+        curl_close($ch);
+
+        return $result;
+
+    }
 }
 
     

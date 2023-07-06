@@ -10,21 +10,14 @@ use Illuminate\Http\Request;
 
 class ProjectController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-    
-    }
-
+  
     /**
      * Store a newly created project.
      */
     public function store(Request $request)
     {
         $request->validate([
-            'siteManagerId' => 'required|numeric', //this should be hidden from the user, it should be gotten from the token
+            'siteManagerId' => 'required|numeric', 
             'projectName' => 'required|string',
             'projectDescription' => 'required|string',
             'startDate' => 'required|date',
@@ -39,7 +32,8 @@ class ProjectController extends Controller
             ], 404);
         }
 
-        auth()->user()->projects()->create([
+        //create project
+        $project = Project::create([
             'siteManagerId' => $request->siteManagerId,
             'projectName' => $request->projectName,
             'projectDescription' => $request->projectDescription,
@@ -47,6 +41,7 @@ class ProjectController extends Controller
             'endDate' => $request->endDate,
         ]);
 
+      
         return response([
             'message' => 'Project created successfully',
         ], 201);
@@ -59,8 +54,8 @@ class ProjectController extends Controller
     public function show(string $id)
     {
         //show a project where siteManagerId = $id
-        $project = Project::where('siteManagerId', $id)->first();
-        if (!$project) {
+        $projects = Project::where('siteManagerId', $id)->get();
+        if (!$projects) {
             return response([
                 'message' => 'Project does not exist',
             ], 404);
@@ -68,7 +63,9 @@ class ProjectController extends Controller
 
         return response([
             'message' => 'Retrieved successfully',
-            'project' => $project->only(['projectName', 'projectDescription', 'startDate', 'endDate'])
+            'project' => $projects->map(function($project){
+                return $project->only(['projectName', 'projectDescription', 'startDate', 'endDate']);
+            })
         ], 200);
         
     }
@@ -78,14 +75,43 @@ class ProjectController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $request->validate([
+            'siteManagerId' => 'required|numeric', 
+            'projectName' => 'required|string',
+            'projectDescription' => 'required|string',
+            'startDate' => 'required|date',
+            'endDate' => 'required|date',
+        ]);
+        
+        //check if site manager exists
+        $siteManager = SiteManager::where('siteManagerId', $request->siteManagerId)->first();
+        if (!$siteManager) {
+            return response([
+                'message' => 'Site Manager does not exist',
+            ], 404);
+        }
+
+        //update project
+        $project = Project::where('siteManagerId', $id)->update([
+            'siteManagerId' => $request->siteManagerId,
+            'projectName' => $request->projectName,
+            'projectDescription' => $request->projectDescription,
+            'startDate' => $request->startDate,
+            'endDate' => $request->endDate,
+        ]);
+
+      
+        return response([
+            'message' => 'Project updated successfully',
+        ], 201);
+        
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function archive(string $id)
     {
-        //
+        
     }
 }

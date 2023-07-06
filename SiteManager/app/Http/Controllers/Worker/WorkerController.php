@@ -3,18 +3,13 @@
 namespace App\Http\Controllers\Worker;
 
 use App\Http\Controllers\Controller;
+use App\Models\SiteManager;
 use App\Models\Worker;
 use Illuminate\Http\Request;
 
 class WorkerController extends Controller
 {
-    /**
-     * get all workers
-     */
-    public function index()
-    {
 
-    }
 
     /**
      * Create a new worker
@@ -41,23 +36,20 @@ class WorkerController extends Controller
 
         return response([
             'message' => 'Worker created successfully',
-            'worker' => $worker,
+            'worker' => $worker->only(['name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']),
         ], 201);
     }
 
     /**
      * Search
      */
-    public function search(String $name)
+    public function search(String $siteManagerId, String $phoneNumber)
     {
+        $workers = Worker::where('siteManagerId', $siteManagerId)
+            ->where('phoneNumber', 'like', '%'.$phoneNumber.'%')
+            ->get(); 
 
-        $siteManagerId = auth()->user()->siteManagerId;
-
-        $workers = Worker::where('name', 'LIKE', '%' . $name . '%')
-            ->where('siteManagerId', $siteManagerId)
-            ->get();
-        
-       if($workers->isEmpty()){
+        if(!$workers){
             return response([
                 'message' => 'No workers found',
             ], 404);
@@ -65,8 +57,12 @@ class WorkerController extends Controller
 
         return response([
             'message' => 'Retrieved successfully',
-            'workers' => $workers->only(['name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']),
+            'workers' => $workers->map(function($worker){
+                return $worker->only(['name', 'phoneNumber', 'payRate', 'dateRegistered']);
+            })
         ], 200);
+
+        
     } 
 
     /**
@@ -75,12 +71,10 @@ class WorkerController extends Controller
     public function show(string $id) 
     {
        
-       // $siteManagerId = auth()->user()->siteManagerId;
+        $workers = Worker::where('siteManagerId', $id)
+            ->get(); 
 
-        $worker = Worker::where('siteManagerId', $id)
-            ->first(); 
-
-        if(!$worker){
+        if(!$workers){
             return response([
                 'message' => 'No workers found',
             ], 404);
@@ -88,7 +82,9 @@ class WorkerController extends Controller
 
         return response([
             'message' => 'Retrieved successfully',
-            'worker' => $worker->only(['name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId'])
+            'workers' => $workers->map(function($worker){
+                return $worker->only(['name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']);
+            })
         ], 200);
 
     }
@@ -96,7 +92,7 @@ class WorkerController extends Controller
     /**
      * Update worker details
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request,string $siteManager, string $phoneNumber)
     {
         $request->validate([
             'name' => 'required|string',
@@ -104,35 +100,26 @@ class WorkerController extends Controller
             'payRate' => 'required|numeric',
         ]);
 
-        $siteManagerId = auth()->user()->siteManagerId;
-
-        $worker = Worker::where('workerId', $id)
-            ->where('siteManagerId', $siteManagerId)
-            ->first(); //
-
+        $worker = Worker::where('phoneNumber', $phoneNumber)
+            ->where('siteManagerId', $siteManager)
+            ->first();
         if(!$worker){
             return response([
-                'message' => 'Worker not found',
+                'message' => 'Worker does not exist',
             ], 404);
         }
 
-        $worker->update([
-            'name' => $request->name,
-            'phoneNumber' => $request->phoneNumber,
-            'payRate' => $request->payRate,
-        ]);
+        $worker->name = $request->name;
+        $worker->phoneNumber = $request->phoneNumber;
+        $worker->payRate = $request->payRate;
+        $worker->save();
 
         return response([
             'message' => 'Worker updated successfully',
-            'worker' => $worker,
+            'worker' => $worker->only(['name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']),
         ], 200);
+
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
+
 }

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('payRate')->nullable();
             $table->unsignedBigInteger('siteManagerId');
             $table->foreign('siteManagerId')->references('siteManagerId')->on('siteManagers');
+            $table->string('status')->default('active');
             $table->timestamps();
         });
     }
