@@ -110,8 +110,14 @@ class ProjectController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function archive(string $id)
+    public function archive(string $projectId, string $siteManagerId )
     {
+        $project =  Project::where('projectId', $projectId)->where('siteManagerId', $siteManagerId)->first();
+        if(!$project){
+            return $this->notFoundResponse('Project does not exist');
+        }
+        $project->delete();
+        return $this->sendSuccess('Project deleted successfully');
         
     }
 }

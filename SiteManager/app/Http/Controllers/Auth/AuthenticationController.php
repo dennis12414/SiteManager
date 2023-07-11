@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthenticationController extends Controller
 {
+
     public function register(Request $request){
         $request->validate([
             'name' => 'required|string',
@@ -37,9 +38,10 @@ class AuthenticationController extends Controller
             'message' => 'An OTP has been sent to ' . $phoneNumber . '',
             
         ], 201);
+        
 
     }
-
+    
     public function verify(Request $request){
         $request->validate([
             'phoneNumber' => 'required|digits:10',
@@ -54,15 +56,14 @@ class AuthenticationController extends Controller
                
             ], 401);
         }
-        
+
         $siteManager->otp = null;
         $siteManager->save();
+
         return response([
-            'message' => 'OTP verified successfully',
+            'valid' => true,
             'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
         ], 201);
-        
-
     }
 
     public function setPassword(Request $request){
@@ -97,10 +98,11 @@ class AuthenticationController extends Controller
         }
         else{
            
-            return response([
-                'message' => 'Logged in successfully',
-                'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
-            ], 201);
+        
+        return response([
+            'message' => 'Login successful',
+            'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
+        ], 201);
         }
 
     }

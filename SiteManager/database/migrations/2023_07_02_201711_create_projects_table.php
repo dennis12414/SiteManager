@@ -19,7 +19,7 @@ return new class extends Migration
             $table->date('endDate')->nullable();
             $table->unsignedBigInteger('siteManagerId');
             $table->foreign('siteManagerId')->references('siteManagerId')->on('siteManagers');
-            $table->string('status')->default('active');
+            $table->softDeletes();
             $table->timestamps();
         });
     }

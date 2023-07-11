@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id('clockId');
             $table->timestamp('date')->nullable();
             $table->timestamp('clockInTime')->nullable();
-            $table->timestamp('clockOutTime')->nullable();
             $table->unsignedBigInteger('workerId');
             $table->unsignedBigInteger('projectId');
             $table->unsignedBigInteger('siteManagerId');

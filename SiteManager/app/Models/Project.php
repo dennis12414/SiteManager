@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class Project extends Model
 {
     use HasFactory;
+    protected $table = 'projects';
+    protected $primaryKey = 'projectId';
 
     /**
      * The attributes that are mass assignable.
@@ -27,6 +29,8 @@ class Project extends Model
     {
         return $this->belongsTo(SiteManager::class, 'siteManagerId');
     }
+
+
 
 
 }

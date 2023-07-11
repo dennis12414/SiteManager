@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('phoneNumber')->unique();
             $table->string('otp')->nullable();
             $table->string('password')->nullable();
-            $table->string('status')->default('active');
+            $table->softDeletes(); 
             $table->rememberToken();
             $table->timestamps();
         });

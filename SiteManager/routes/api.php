@@ -17,24 +17,32 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-Route::post('/register', [AuthenticationController::class, 'register']);
-Route::post('/verify', [AuthenticationController::class, 'verify']);
-Route::post('/setPassword', [AuthenticationController::class, 'setPassword']);
+Route::post('/register', [AuthenticationController::class, 'register']); //register
+Route::post('/verify', [AuthenticationController::class, 'verify']);//verify
+Route::post('/setPassword', [AuthenticationController::class, 'setPassword']);//set password
 
-Route::post('/login', [AuthenticationController::class, 'login']);
+Route::post('/login', [AuthenticationController::class, 'login']);//login
 
-Route::Get('/projects/{siteManagerId}', [ProjectController::class, 'show']);
-Route::post('/projects', [ProjectController::class, 'store']);
+Route::Get('/projects/{siteManagerId}', [ProjectController::class, 'show']);//show projects
+Route::post('/projects', [ProjectController::class, 'store']);//create project
+//Route::Get('/projects/{projectId}', [ProjectController::class, '']);//get project
+Route::delete('/projects/archive/{projectId}/{siteManagerId}', [ProjectController::class, 'archive']);//archive project
+//Route::delete('/projects/archive/{projectId}', [ProjectController::class, 'archive']);//archive project
 
-Route::Get('/workers/{siteManagerId}',[WorkerController::class, 'show']);
-Route::post('/workers',[WorkerController::class, 'store']);
-Route::Get('/workers/search/{siteManagerId}/{phoneNumber}',[WorkerController::class, 'search']);
-Route::put('/workers/{siteManagerId}/{phoneNumber}',[WorkerController::class, 'update']);
+Route::Get('/workers/{siteManagerId}',[WorkerController::class, 'show']);//show workers
+Route::post('/workers',[WorkerController::class, 'store']);//create worker
+Route::Get('/workers/search/{siteManagerId}/{phoneNumber}',[WorkerController::class, 'search']);//search worker
+Route::put('/workers/{siteManagerId}/{phoneNumber}',[WorkerController::class, 'update']);//update worker
+Route::delete('/workers/archive/{phoneNumber}',[WorkerController::class, 'archive']);//archive worker
 
-Route::post('/clockIn',[ClockInsController::class, 'clockIn']);
-Route::post('/clockOut',[ClockInsController::class, 'clockOut']);
+Route::post('/clockIn',[ClockInsController::class, 'clockIn']);//clock in
+Route::post('/clockOut',[ClockInsController::class, 'clockOut']);//clock out
 
-Route::Get('/report/{projectId}',[ReportController::class, 'generateReport']);
+Route::Get('/report/{projectId}',[ReportController::class, 'generateReport']); //`generate report
+
+Route::middleware('auth:api')->get('/user', function (Request $request) {
+    return $request->user();
+});
 
 
 

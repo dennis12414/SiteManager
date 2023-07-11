@@ -38,7 +38,7 @@ class ReportController extends Controller
         foreach($workers as $worker){
             $totalDaysWorked = 0;
             foreach($clockIns as $clockIn){
-                if($clockIn->workerId === $worker->workerId && $clockIn->clockOutTime !== null){
+                if($clockIn->workerId === $worker->workerId && $clockIn->clockInTime !== null){
                     $totalDaysWorked++;
                 }
             }

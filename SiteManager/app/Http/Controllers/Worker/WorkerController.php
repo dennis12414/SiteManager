@@ -10,26 +10,21 @@ use Illuminate\Http\Request;
 class WorkerController extends Controller
 {
 
-
-    /**
-     * Create a new worker
-     */
     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string',
             'phoneNumber' => 'required|unique:workers|numeric',
+            'dateRegistered'=> 'required|date',
             'payRate' => 'required|numeric',
             'siteManagerId' => 'required|numeric', //this should be hidden from the user, it should be gotten from the token
         ]);
 
-       
-        $dateCreated = date('Y-m-d H:i:s'); 
-
+    
         $worker = Worker::create([
             'name' => $request->name,
             'phoneNumber' => $request->phoneNumber,
-            'dateRegistered' => $dateCreated,
+            'dateRegistered' => $request->dateRegistered,
             'payRate' => $request->payRate,
             'siteManagerId' => $request->siteManagerId,
         ]);
@@ -37,12 +32,9 @@ class WorkerController extends Controller
         return response([
             'message' => 'Worker created successfully',
             'worker' => $worker->only(['name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']),
-        ], 201);
+        ], 201); 
     }
 
-    /**
-     * Search
-     */
     public function search(String $siteManagerId, String $phoneNumber)
     {
         $workers = Worker::where('siteManagerId', $siteManagerId)
@@ -120,6 +112,23 @@ class WorkerController extends Controller
         ], 200);
 
     }
+    
+    public function archive(string $phoneNumber){
+        
+        $worker = Worker::where('phoneNumber', $phoneNumber)->first();
+        if (!$worker) {
+            return response([
+                'message' => 'Worker does not exist',
+            ], 404); 
+        }
 
+        $worker->delete();
+
+        return response([
+            'message' => 'Worker archived successfully',
+        ], 200); 
+
+       
+    }
 
 }

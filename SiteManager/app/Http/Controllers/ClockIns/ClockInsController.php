@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 
 class ClockInsController extends Controller
 {
+
+    
    public function clockIn(Request $request){
    
     $request->validate([
@@ -23,7 +25,7 @@ class ClockInsController extends Controller
     if ($clockIn) {
         return response([
             'message' => 'Worker already clocked in',
-        ], 401);
+        ], 401); 
     }
 
     //create clock in
@@ -38,50 +40,12 @@ class ClockInsController extends Controller
    
     return response([
         'message' => 'Clocked in successfully',
-    ], 201);
+    ], 201); 
 
 
     
    }
 
    
-   public function clockOut(Request $request){
-
-        $request->validate([
-            'siteManagerId' => 'required|numeric', 
-            'projectId' => 'required|numeric',
-            'workerId'=> 'required|numeric',
-            'clockOutTime' => 'required|date',
-        ]);
-
-        $date = date('Y-m-d');
-
-        //check if site manager has already clocked out for the day
-        $clockOut = ClockIns::where('workerId', $request->workerId)->whereDate('date', $date)->first();
-        if (!$clockOut) {
-            return response([
-                'message' => 'Worker has not clocked in',
-            ], 401);
-        }
-      
-        if ($clockOut->clockOutTime) {
-            return response([
-                'message' => 'Worker already clocked out',
-            ], 401);
-        }
-
-        
-        $clockId = $clockOut->clockId;
-
-        //update clock out
-        $clockOut = ClockIns::where('clockId', $clockId)->update([
-            'clockOutTime' => $request->clockOutTime,
-        ]);
-
-        return response([
-            'message' => 'Clocked out successfully',
-        ], 201);
-        
-        
-    }
+   
 }
