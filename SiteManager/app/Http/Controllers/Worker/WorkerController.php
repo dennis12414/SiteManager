@@ -14,11 +14,19 @@ class WorkerController extends Controller
     {
         $request->validate([
             'name' => 'required|string',
-            'phoneNumber' => 'required|unique:workers|numeric',
+            'phoneNumber' => 'required|numeric',
             'dateRegistered'=> 'required|date',
             'payRate' => 'required|numeric',
             'siteManagerId' => 'required|numeric', //this should be hidden from the user, it should be gotten from the token
         ]);
+
+        //if phone number already exists
+        $worker = Worker::where('phoneNumber', $request->phoneNumber)->first();
+        if ($worker) {
+            return response([
+                'message' => 'Phone Number already exists',
+            ], 409);
+        }
 
     
         $worker = Worker::create([

@@ -14,7 +14,13 @@ class SiteManagerController extends Controller
     public function index()
     {
         $siteManagers = SiteManager::all();
-        
+
+        return response([
+            'message' => 'Retrieved successfully',
+            'siteManagers' => $siteManagers->map(function($siteManager){
+                return $siteManager->only(['siteManagerId', 'name', 'phoneNumber', 'dateRegistered']);
+            }),
+        ], 200);
     }
 
     /**
@@ -22,6 +28,7 @@ class SiteManagerController extends Controller
      */
     public function show(string $id)
     {
+
         
     }
 
@@ -38,6 +45,17 @@ class SiteManagerController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $siteManager = SiteManager::where('siteManagerId', $id)->first();
+        if (!$siteManager) {
+            return response([
+                'message' => 'Site Manager does not exist',
+            ], 404);
+        }
+
+        $siteManager->delete();
+        return response([
+            'message' => 'Site Manager deleted successfully',
+        ], 200);
+        
     }
 }

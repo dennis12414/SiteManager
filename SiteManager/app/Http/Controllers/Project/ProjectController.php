@@ -70,6 +70,22 @@ class ProjectController extends Controller
         
     }
 
+    public function details(string $id)
+    {
+        //show a project where projectId = $id
+        $project = Project::where('projectId', $id)->first();
+        if (!$project) {
+            return response([
+                'message' => 'Project does not exist',
+            ], 404);
+        }
+
+        return response([
+            'message' => 'Retrieved successfully',
+            'project' => $project->only(['projectName', 'projectDescription', 'startDate', 'endDate'])
+        ], 200);
+    }
+
     /**
      * Update the specified resource in storage.
      */

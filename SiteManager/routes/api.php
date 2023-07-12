@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Worker\WorkerController;
 use App\Http\Controllers\ClockIns\ClockInsController;
 use App\Http\Controllers\Report\ReportController;
+use App\Http\Controllers\SiteManager\SiteManagerController;
 use Illuminate\Support\Facades\Route; 
 
 /*
@@ -25,9 +26,8 @@ Route::post('/login', [AuthenticationController::class, 'login']);//login
 
 Route::Get('/projects/{siteManagerId}', [ProjectController::class, 'show']);//show projects
 Route::post('/projects', [ProjectController::class, 'store']);//create project
-//Route::Get('/projects/{projectId}', [ProjectController::class, '']);//get project
+Route::Get('/projects/details/{projectId}', [ProjectController::class, 'details']);//get project
 Route::delete('/projects/archive/{projectId}/{siteManagerId}', [ProjectController::class, 'archive']);//archive project
-//Route::delete('/projects/archive/{projectId}', [ProjectController::class, 'archive']);//archive project
 
 Route::Get('/workers/{siteManagerId}',[WorkerController::class, 'show']);//show workers
 Route::post('/workers',[WorkerController::class, 'store'])->name('workers.store');//create worker
@@ -40,21 +40,11 @@ Route::post('/clockOut',[ClockInsController::class, 'clockOut']);//clock out
 
 Route::Get('/report/{projectId}',[ReportController::class, 'generateReport']); //`generate report
 
+Route::Get('/siteManager',[SiteManagerController::class, 'index']);//show workers
+
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
-
-// $response = $this->call('POST','/api/workers', [
-//     'name' => 'John Doe',
-//     'phoneNumber' => '1234567890',
-//     'dateRegistered' => '2023-03-08',
-//     'payRate' => 100,
-//     'siteManagerId' => 1,
-// ]);
-
-// $this->assertEquals(201, $response->status());
-// $this->assertEquals('Worker created successfully', $response->json()['message']);
-
 
 
 

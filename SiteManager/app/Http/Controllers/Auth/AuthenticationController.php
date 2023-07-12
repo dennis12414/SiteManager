@@ -16,9 +16,17 @@ class AuthenticationController extends Controller
     public function register(Request $request){
         $request->validate([
             'name' => 'required|string',
-            'email' => 'required|unique:siteManagers|email',
-            'phoneNumber' => 'required|unique:siteManagers|numeric',
+            'email' => 'required|email',
+            'phoneNumber' => 'required|numeric',
         ]);
+
+        //if email or phone number already exists, return error
+        $siteManager = SiteManager::where('email', $request->email)->orWhere('phoneNumber', $request->phoneNumber)->first();
+        if ($siteManager) {
+            return response([
+                'message' => 'Email or Phone Number already exists',
+            ], 409);
+        }
 
         $otp = rand(100000, 999999);
 
@@ -44,7 +52,7 @@ class AuthenticationController extends Controller
     
     public function verify(Request $request){
         $request->validate([
-            'phoneNumber' => 'required|digits:10',
+            'phoneNumber' => 'required|numeric',
             'otp' => 'required|digits:6',
         ]);
         
@@ -95,7 +103,7 @@ class AuthenticationController extends Controller
 
     public function login(Request $request){
         $request->validate([
-            'phoneNumber' => 'required|digits:10',
+            'phoneNumber' => 'required|numeric',
             'password' => 'required|string|min:8'
         ]);
 
@@ -110,7 +118,7 @@ class AuthenticationController extends Controller
            
         
         return response([
-            'message' => 'Login successful',
+            'valid' => true,
             'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
         ], 201);
         }
