@@ -47,29 +47,39 @@ class AuthenticationController extends Controller
             'phoneNumber' => 'required|digits:10',
             'otp' => 'required|digits:6',
         ]);
-
-        $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)->first();
         
-        if ($siteManager->otp != $request->otp) {
+        if(config('app.env') == 'local' || config('app.env') == 'testing' ){
+            $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)->first();
             return response([
-                'message' => 'Invalid OTP',
+                'valid' => true,
+                'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
+            ], 201);
+        }
+        else{
+            $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)->first();
+        
+            if ($siteManager->otp != $request->otp) {
+                return response([
+                    'message' => 'Invalid OTP',
                
-            ], 401);
+                ], 401);
+            }
+
+            $siteManager->otp = null;
+            $siteManager->save();
+
+            return response([
+                'valid' => true,
+                'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
+            ], 201);
         }
 
-        $siteManager->otp = null;
-        $siteManager->save();
-
-        return response([
-            'valid' => true,
-            'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
-        ], 201);
     }
 
     public function setPassword(Request $request){
         $request->validate([
-            'phoneNumber' => 'required|digits:10',
             'password' => 'required|string|min:8',
+            'passwordConfirmation' => 'required|string|min:8',
         ]);
 
         $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)->first();

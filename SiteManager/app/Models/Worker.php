@@ -10,6 +10,10 @@ class Worker extends Model
     use HasFactory;
 
     protected $primaryKey = 'workerId';
+    protected static function newFactory()
+    {
+        return \App\Database\Eloquent\WorkerFactory::new();
+    }
 
     protected $fillable = [
         'name',

@@ -30,7 +30,7 @@ Route::delete('/projects/archive/{projectId}/{siteManagerId}', [ProjectControlle
 //Route::delete('/projects/archive/{projectId}', [ProjectController::class, 'archive']);//archive project
 
 Route::Get('/workers/{siteManagerId}',[WorkerController::class, 'show']);//show workers
-Route::post('/workers',[WorkerController::class, 'store']);//create worker
+Route::post('/workers',[WorkerController::class, 'store'])->name('workers.store');//create worker
 Route::Get('/workers/search/{siteManagerId}/{phoneNumber}',[WorkerController::class, 'search']);//search worker
 Route::put('/workers/{siteManagerId}/{phoneNumber}',[WorkerController::class, 'update']);//update worker
 Route::delete('/workers/archive/{phoneNumber}',[WorkerController::class, 'archive']);//archive worker
@@ -43,6 +43,35 @@ Route::Get('/report/{projectId}',[ReportController::class, 'generateReport']); /
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+// $response = $this->call('POST','/api/workers', [
+//     'name' => 'John Doe',
+//     'phoneNumber' => '1234567890',
+//     'dateRegistered' => '2023-03-08',
+//     'payRate' => 100,
+//     'siteManagerId' => 1,
+// ]);
+
+// $this->assertEquals(201, $response->status());
+// $this->assertEquals('Worker created successfully', $response->json()['message']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

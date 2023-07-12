@@ -1,9 +1,10 @@
 <?php
 
 namespace App\Http\Controllers\SiteManager;
-
+use App\Models\SiteManager;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+
 
 class SiteManagerController extends Controller
 {
@@ -12,15 +13,8 @@ class SiteManagerController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
+        $siteManagers = SiteManager::all();
+        
     }
 
     /**
@@ -28,7 +22,7 @@ class SiteManagerController extends Controller
      */
     public function show(string $id)
     {
-        //
+        
     }
 
     /**
