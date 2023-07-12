@@ -31,7 +31,7 @@ Route::delete('/projects/archive/{projectId}/{siteManagerId}', [ProjectControlle
 
 Route::Get('/workers/{siteManagerId}',[WorkerController::class, 'show']);//show workers
 Route::post('/workers',[WorkerController::class, 'store'])->name('workers.store');//create worker
-Route::Get('/workers/search/{siteManagerId}/{phoneNumber}',[WorkerController::class, 'search']);//search worker
+Route::Get('/workers/search/{siteManagerId}/{searchTerm}',[WorkerController::class, 'search']);//search worker
 Route::put('/workers/{siteManagerId}/{phoneNumber}',[WorkerController::class, 'update']);//update worker
 Route::delete('/workers/archive/{phoneNumber}',[WorkerController::class, 'archive']);//archive worker
 

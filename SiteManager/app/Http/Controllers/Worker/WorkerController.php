@@ -43,10 +43,11 @@ class WorkerController extends Controller
         ], 201); 
     }
 
-    public function search(String $siteManagerId, String $phoneNumber)
+    public function search(String $siteManagerId, String $searchTerm)
     {
         $workers = Worker::where('siteManagerId', $siteManagerId)
-            ->where('phoneNumber', 'like', '%'.$phoneNumber.'%')
+            ->where('phoneNumber', 'like', '%'.$searchTerm.'%')
+            ->orWhere('name', 'like', '%'.$searchTerm.'%')
             ->get(); 
 
         if(!$workers){
