@@ -27,12 +27,12 @@ Route::post('/login', [AuthenticationController::class, 'login']);//login
 Route::Get('/projects/{siteManagerId}', [ProjectController::class, 'show']);//show projects
 Route::post('/projects', [ProjectController::class, 'store']);//create project
 Route::Get('/projects/details/{projectId}', [ProjectController::class, 'details']);//get project
-Route::delete('/projects/archive/{projectId}/{siteManagerId}', [ProjectController::class, 'archive']);//archive project
+Route::delete('/projects/archive/{projectId}', [ProjectController::class, 'archive']);//archive project
 
 Route::Get('/workers/{siteManagerId}',[WorkerController::class, 'show']);//show workers
 Route::post('/workers',[WorkerController::class, 'store'])->name('workers.store');//create worker
 Route::Get('/workers/search/{siteManagerId}/{searchTerm}',[WorkerController::class, 'search']);//search worker
-Route::put('/workers/{siteManagerId}/{phoneNumber}',[WorkerController::class, 'update']);//update worker
+Route::put('/workers/update/{siteManagerId}/{phoneNumber}',[WorkerController::class, 'update']);//update worker
 Route::delete('/workers/archive/{phoneNumber}',[WorkerController::class, 'archive']);//archive worker
 
 Route::post('/clockIn',[ClockInsController::class, 'clockIn']);//clock in

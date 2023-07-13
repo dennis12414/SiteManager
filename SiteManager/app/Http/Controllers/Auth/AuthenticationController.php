@@ -93,7 +93,6 @@ class AuthenticationController extends Controller
     public function setPassword(Request $request){
         $request->validate([
             'password' => 'required|string|min:8',
-            'passwordConfirmation' => 'required|string|min:8',
         ]);
 
         $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)->first();

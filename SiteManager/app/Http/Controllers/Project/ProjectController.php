@@ -53,18 +53,19 @@ class ProjectController extends Controller
      */
     public function show(string $id)
     {
-        //show a project where siteManagerId = $id
         $projects = Project::where('siteManagerId', $id)->get();
-        if (!$projects) {
+
+
+        if ($projects->isEmpty()) {
             return response([
-                'message' => 'Project does not exist',
+                'message' => 'No projects found',
             ], 404);
         }
 
         return response([
-            'message' => 'Retrieved successfully',
+            'message' => 'Retrieve successfully',
             'project' => $projects->map(function($project){
-                return $project->only(['projectName', 'projectDescription', 'startDate', 'endDate']);
+                return $project->only(['projectId','siteManagerId','projectName', 'projectDescription', 'startDate', 'endDate']);
             })
         ], 200);
         
@@ -121,19 +122,30 @@ class ProjectController extends Controller
             'message' => 'Project updated successfully',
         ], 201);
         
+        
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function archive(string $projectId, string $siteManagerId )
+    public function archive(string $projectId, string $siteManagerId)
     {
-        $project =  Project::where('projectId', $projectId)->where('siteManagerId', $siteManagerId)->first();
-        if(!$project){
-            return $this->notFoundResponse('Project does not exist');
+        $project =  Project::where('projectId', $projectId)
+                            ->where('siteManagerId', $siteManagerId)
+                            ->first();
+
+        if (!$project) {
+            return response([
+                'message' => 'Project does not exist',
+            ], 404);
         }
+
         $project->delete();
-        return $this->sendSuccess('Project deleted successfully');
+
+        return response([
+            'message' => 'Project archived successfully',
+        ], 200);
+
         
     }
 }

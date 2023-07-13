@@ -12,9 +12,7 @@ use Tests\TestCase;
 
 class WorkerControllerTest extends TestCase
 {
-    use RefreshDatabase; //RefreshDatabase trait is used to refresh the database after each test to ensure that the tests do not interfere with each other.
-    //use DatabaseTransactions; //DatabaseTransactions trait is used to wrap each test in a database transaction. This ensures that the database is reset after each test so that the tests do not interfere with each other.
-
+    use RefreshDatabase; 
     public function test_create_new_worker(): void
     {
          $siteManager = SiteManager::factory()->create(); 
