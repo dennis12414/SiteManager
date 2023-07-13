@@ -83,7 +83,7 @@ class ProjectController extends Controller
 
         return response([
             'message' => 'Retrieved successfully',
-            'project' => $project->only(['projectName', 'projectDescription', 'startDate', 'endDate'])
+            'project' => $project->only(['projectId','siteManagerId','projectName', 'projectDescription', 'startDate', 'endDate'])
         ], 200);
     }
 
