@@ -58,6 +58,12 @@ class AuthenticationController extends Controller
         
         // if(config('app.env') == 'local' || config('app.env') == 'testing' ){
             $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)->first();
+            if(!$siteManager){
+                return response([
+                    'message' => 'Invalid credentials',
+                ], 401);
+            }
+            
             return response([
                 'valid' => true,
                 'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
