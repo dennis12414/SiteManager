@@ -36,7 +36,7 @@ Route::put('/workers/{siteManagerId}/{phoneNumber}',[WorkerController::class, 'u
 Route::delete('/workers/archive/{phoneNumber}',[WorkerController::class, 'archive']);//archive worker
 
 Route::post('/clockIn',[ClockInsController::class, 'clockIn']);//clock in
-Route::post('/clockOut',[ClockInsController::class, 'clockOut']);//clock out
+
 
 Route::Get('/report/{projectId}',[ReportController::class, 'generateReport']); //`generate report
 

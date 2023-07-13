@@ -56,31 +56,31 @@ class AuthenticationController extends Controller
             'otp' => 'required|digits:6',
         ]);
         
-        if(config('app.env') == 'local' || config('app.env') == 'testing' ){
+        // if(config('app.env') == 'local' || config('app.env') == 'testing' ){
             $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)->first();
             return response([
                 'valid' => true,
                 'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
             ], 201);
-        }
-        else{
-            $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)->first();
+        // }
+        // else{
+        //     $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)->first();
         
-            if ($siteManager->otp != $request->otp) {
-                return response([
-                    'message' => 'Invalid OTP',
+        //     if ($siteManager->otp != $request->otp) {
+        //         return response([
+        //             'message' => 'Invalid OTP',
                
-                ], 401);
-            }
+        //         ], 401);
+        //     }
 
-            $siteManager->otp = null;
-            $siteManager->save();
+        //     $siteManager->otp = null;
+        //     $siteManager->save();
 
-            return response([
-                'valid' => true,
-                'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
-            ], 201);
-        }
+        //     return response([
+        //         'valid' => true,
+        //         'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
+        //     ], 201);
+        // }
 
     }
 
