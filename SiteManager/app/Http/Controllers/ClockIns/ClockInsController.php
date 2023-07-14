@@ -19,16 +19,19 @@ class ClockInsController extends Controller
         'clockInTime' => 'required|date',
     ]);
 
-    $date = date('Y-m-d');
-    //check if site manager has already clocked in for the day
-    $clockIn = ClockIns::where('workerId', $request->workerId)->whereDate('date', $date)->first();
+    //check if worker is already clocked in
+    $clockIn = ClockIns::where('workerId', $request->workerId)
+                ->where('projectId', $request->projectId)
+                ->where('clockInTime', $request->clockInTime)
+                ->first();
+
     if ($clockIn) {
         return response([
             'message' => 'Worker already clocked in',
-        ], 401); 
+        ], 409);
     }
 
-    //create clock in
+    $date = date('Y-m-d', strtotime($request->clockInTime));
     $clockIn = ClockIns::create([
         'siteManagerId' => $request->siteManagerId,
         'projectId' => $request->projectId,

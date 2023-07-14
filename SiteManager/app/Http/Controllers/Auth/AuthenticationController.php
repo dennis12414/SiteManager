@@ -21,7 +21,11 @@ class AuthenticationController extends Controller
         ]);
 
         //if email or phone number already exists, return error
-        $siteManager = SiteManager::where('email', $request->email)->orWhere('phoneNumber', $request->phoneNumber)->first();
+        $siteManager = SiteManager::where('email', $request->email)
+                     ->orWhere('phoneNumber', $request->phoneNumber)
+                     ->where('phoneVerified', true)
+                      ->first();
+
         if ($siteManager) {
             return response([
                 'message' => 'Email or Phone Number already exists',
@@ -35,6 +39,7 @@ class AuthenticationController extends Controller
             'email' => $request->email,
             'phoneNumber' => $request->phoneNumber,
             'otp' => $otp,
+            'phoneVerified'=> false,
         ]);
 
         $message = "Your OTP is: " . $otp;
@@ -63,6 +68,10 @@ class AuthenticationController extends Controller
                     'message' => 'Invalid credentials',
                 ], 401);
             }
+
+            $siteManager->phoneVerified = true;
+            $siteManager->otp = null;
+            $siteManager->save();
             
             return response([
                 'valid' => true,
@@ -79,6 +88,7 @@ class AuthenticationController extends Controller
         //         ], 401);
         //     }
 
+        //     $siteManager->phone_verified = true;
         //     $siteManager->otp = null;
         //     $siteManager->save();
 
@@ -92,10 +102,27 @@ class AuthenticationController extends Controller
 
     public function setPassword(Request $request){
         $request->validate([
+            'phoneNumber' => 'required|numeric',
             'password' => 'required|string|min:8',
         ]);
 
         $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)->first();
+        if(!$siteManager){
+            return response([
+                'message' => 'Invalid credentials',
+            ], 401);
+        }
+        //check if phone number is verified
+        if (!$siteManager->phoneVerified) {
+            return response([
+                'message' => 'Phone number not verified',
+            ], 401);
+        }
+
+        //east africa time zone
+        date_default_timezone_set('Africa/Nairobi');
+        $time = date('Y-m-d H:i:s');
+        //set password
         $siteManager->password = Hash::make($request->password);
         $siteManager->save();
 
@@ -112,21 +139,32 @@ class AuthenticationController extends Controller
             'password' => 'required|string|min:8'
         ]);
 
-        $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)->first();
-        
+        $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)->first(); 
         if(!$siteManager || !Hash::check($request->password, $siteManager->password)){
             return response([
                 'message' => 'Invalid credentials'
             ], 401);
         }
-        else{
-           
-        
+
+        // Check if phone number is verified
+        if (!$siteManager->phoneVerified) {
+            return response([
+                'message' => 'Phone number not verified',
+            ], 401);
+        }
+       
+        //check if password is correct
+        if (!Hash::check($request->password, $siteManager->password)) {
+            return response([
+                'message' => 'Invalid credentials',
+            ], 401);
+        }
+
         return response([
             'valid' => true,
             'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
         ], 201);
-        }
+        
 
     }
 
@@ -159,6 +197,10 @@ class AuthenticationController extends Controller
 
     }
 }
+
+
+
+
 
     
 

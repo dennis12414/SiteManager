@@ -22,6 +22,9 @@ return new class extends Migration
             $table->rememberToken();
             $table->timestamps();
         });
+        Schema::table('siteManagers', function (Blueprint $table) {
+            $table->boolean('phoneVerified')->default(false);
+        });
     }
 
     /**

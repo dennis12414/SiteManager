@@ -21,7 +21,9 @@ class WorkerController extends Controller
         ]);
 
         //if phone number already exists
-        $worker = Worker::where('phoneNumber', $request->phoneNumber)->first();
+        $worker = Worker::where('phoneNumber', $request->phoneNumber)
+                 ->where('siteManagerId', $request->siteManagerId)
+                 ->first();
         if ($worker) {
             return response([
                 'message' => 'Phone Number already exists',
@@ -39,7 +41,7 @@ class WorkerController extends Controller
 
         return response([
             'message' => 'Worker created successfully',
-            'worker' => $worker->only(['name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']),
+            'worker' => $worker->only(['workerId','name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']),
         ], 201); 
     }
 
@@ -59,7 +61,7 @@ class WorkerController extends Controller
         return response([
             'message' => 'Retrieved successfully',
             'workers' => $workers->map(function($worker){
-                return $worker->only(['name', 'phoneNumber', 'payRate', 'dateRegistered']);
+                return $worker->only(['workerId','name', 'phoneNumber', 'payRate', 'dateRegistered']);
             })
         ], 200);
 
@@ -84,7 +86,7 @@ class WorkerController extends Controller
         return response([
             'message' => 'Retrieved successfully',
             'workers' => $workers->map(function($worker){
-                return $worker->only(['name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']);
+                return $worker->only(['workerId','name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']);
             })
         ], 200);
 
@@ -117,14 +119,16 @@ class WorkerController extends Controller
 
         return response([
             'message' => 'Worker updated successfully',
-            'worker' => $worker->only(['name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']),
+            'worker' => $worker->only(['workerId','name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']),
         ], 200);
 
     }
     
-    public function archive(string $phoneNumber){
+    public function archive(string $phoneNumber, string $siteManagerId){
         
-        $worker = Worker::where('phoneNumber', $phoneNumber)->first();
+        $worker = Worker::where('phoneNumber', $phoneNumber)
+                 ->where('siteManagerId', $siteManagerId)
+                    ->first();
         if (!$worker) {
             return response([
                 'message' => 'Worker does not exist',
