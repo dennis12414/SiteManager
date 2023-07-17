@@ -9,6 +9,7 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Controllers\Auth\AuthenticationController;
 use Illuminate\Http\Request;
 use App\Models\SiteManager;
+use Illuminate\Support\Facades\Hash;
 use Mockery;
 
 class AuthorizationControllerTest extends TestCase
@@ -55,7 +56,10 @@ class AuthorizationControllerTest extends TestCase
         $this->assertEquals(201, $response->status());
 
     }
-    
+
+     /**
+     * A test set site manager password
+     */
     public function test_set_site_manager_password()
     {
         $this->withoutExceptionHandling();
@@ -63,13 +67,12 @@ class AuthorizationControllerTest extends TestCase
         $siteManager = SiteManager::factory()->create([
             'phoneNumber' => '0723456789',
             'password'=> null,
-            
+            'phoneVerified' => '1',
         ]);
 
         $request = new Request([
             'phoneNumber' => '0723456789',
             'password' => 'password',
-            'passwordConfirmation' => 'password',
         ]);
 
         $controller = new AuthenticationController();
@@ -80,13 +83,17 @@ class AuthorizationControllerTest extends TestCase
         
     }
 
+     /**
+     * A test login when credentials are valid
+     */
     public function test_login_if_credentials_are_valid()
     {
         $this->withoutExceptionHandling();
 
         $siteManager = SiteManager::factory()->create([
             'phoneNumber' => '0723456789',
-            'password'=> 'password',
+            'password'=> Hash::make('password'),
+            'phoneVerified' => '1',
         ]);
 
         $request = new Request([
@@ -97,9 +104,34 @@ class AuthorizationControllerTest extends TestCase
         $controller = new AuthenticationController();
         $response = $controller->login($request);
 
+
         //assert that the response status is 201
         $this->assertEquals(201, $response->status());
         
+    }
+
+    /**
+     * A test login when credentials are invalid
+     */
+    public function test_login_if_credentials_are_invalid()
+    {
+        $this->withoutExceptionHandling();
+
+        $siteManager = SiteManager::factory()->create([
+            'phoneNumber' => '0723456789',
+            'password'=> Hash::make('password'),
+            'phoneVerified' => '1',
+        ]);
+
+        $request = new Request([
+            'phoneNumber' => '0723456789',
+            'password' => 'password1',
+        ]);
+
+        $controller = new AuthenticationController();
+        $response = $controller->login($request);
+
+        $this->assertEquals(401, $response->status());
     }
 
 }

@@ -7,6 +7,8 @@ use App\Models\SiteManager;
 use App\Models\Worker;
 use Illuminate\Http\Request;
 
+use function PHPUnit\Framework\isEmpty;
+
 class WorkerController extends Controller
 {
 
@@ -56,11 +58,11 @@ class WorkerController extends Controller
     public function search(String $siteManagerId, String $searchTerm)
     {
         $workers = Worker::where('siteManagerId', $siteManagerId)
-            ->where('phoneNumber', 'like', '%'.$searchTerm.'%')
+            ->orWhere('phoneNumber', 'like', '%'.$searchTerm.'%')
             ->orWhere('name', 'like', '%'.$searchTerm.'%')
             ->get(); 
 
-        if(!$workers){
+        if($workers->isEmpty()){
             return response([
                 'message' => 'No workers found',
             ], 404);

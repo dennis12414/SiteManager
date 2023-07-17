@@ -55,8 +55,11 @@ class ReportControllerTest extends TestCase
         $controller = new ReportController();
         $response = $controller->generateReport($project->projectId);
 
-        //Assert response status is 200
-        $this->assertEquals(200, $response->status());
+        //return response()->stream($callback, 200, $headers);
+
+        //assert that the response is a stream
+        //$this->assertEquals(200, $response->status());
+        $this->assertEquals('text/csv', $response->headers->get('content-type'));
        
     }
 }

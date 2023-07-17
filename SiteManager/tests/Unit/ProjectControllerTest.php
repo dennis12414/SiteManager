@@ -13,7 +13,7 @@ use Tests\TestCase;
 class ProjectControllerTest extends TestCase
 {
     /**
-     * A basic unit test example.
+     * A test store method  creates a new project record
      */
     public function test_store_creates_new_project_record(): void
     {
@@ -29,23 +29,18 @@ class ProjectControllerTest extends TestCase
             'endDate' => '2023-07-20',
         ]);
 
-        // Call the store method 
         $controller = new ProjectController();
         $response = $controller->store($request);
 
-        // Assert that the response status is 201
+        
         $this->assertEquals(201, $response->status());
 
-        // Assert that new project was created
-        // $this->assertDatabaseHas('projects', [
-        //     'siteManagerId' => $siteManager->siteManagerId,
-        //     'projectName' => 'Project 1',
-        //     'projectDescription' => 'project 1 description',
-        //     'startDate' => '2023-07-13',
-        //     'endDate' => '2023-07-20',
-        // ]);
-
     }
+
+
+    /**
+     * A test store method returns error if site manager does not exist
+     */
     public function test_store_returns_error_if_site_manager_does_not_exist()
     {
         $this->withoutExceptionHandling();
@@ -58,13 +53,14 @@ class ProjectControllerTest extends TestCase
             'endDate' => '2023-07-20',
         ]);
 
-        // Call the store method on the ProjectController
+     
         $controller = new ProjectController();
         $response = $controller->store($request);
 
-        // Assert that the response status is 404
         $this->assertEquals(404, $response->status());
     }
+
+    
     public function test_show_returns_projects_for_site_manager()
     {
         $this->withoutExceptionHandling();
@@ -78,13 +74,13 @@ class ProjectControllerTest extends TestCase
             'siteManagerId' => $siteManager->siteManagerId,
         ]);
 
-        // Call the show method on the ProjectController
         $controller = new ProjectController();
         $response = $controller->show($siteManager->siteManagerId);
 
-        // Assert that the response status is 200
         $this->assertEquals(200, $response->status());
     }
+
+
     public function test_show_returns_error_if_no_projects_exist_for_site_manager()
     {
         $this->withoutExceptionHandling();
@@ -97,21 +93,24 @@ class ProjectControllerTest extends TestCase
         $this->assertEquals(404, $response->status());
 
     }
-    public function test_details_returns_project_with_given_id()
+
+
+    public function test_details_returns_project_details()
     {
-        // $this->withoutExceptionHandling();
+         $this->withoutExceptionHandling();
 
-        // $siteManager = SiteManager::factory()->create();
-        // $project = Project::factory()->create([
-        //     'siteManagerId' => $siteManager->siteManagerId,
-        // ]);
+         $siteManager = SiteManager::factory()->create();
+        $project = Project::factory()->create([
+            'siteManagerId' => $siteManager->siteManagerId,
+        ]);
 
-        // $controller = new ProjectController();
-        // $response = $controller->details($project->projectId);
+        $controller = new ProjectController();
+        $response = $controller->details($project->projectId);
 
-        // $this->assertEquals(200, $response->status());
+        $this->assertEquals(200, $response->status());
 
     }
+
 
     public function test_details_returns_error_if_project_does_not_exist()
     {
@@ -122,6 +121,7 @@ class ProjectControllerTest extends TestCase
 
         $this->assertEquals(404, $response->status());
     }
+
 
     public function test_update_updates_existing_project_record()
     {
@@ -147,36 +147,44 @@ class ProjectControllerTest extends TestCase
 
     
     }
-    public function test_update_returns_error_if_site_manager_does_not_exist()
-    {
-        // $this->withoutExceptionHandling();
 
-        // $project = Project::factory()->create();
 
-        // $request = new Request([
-        //     'siteManagerId' => 1,
-        //     'projectName' => 'Updated Name',
-        //     'projectDescription' => 'Updated Description',
-        //     'startDate' => '2023-07-12',
-        //     'endDate' => '2023-07-20',
-        // ]);
+    // public function test_updateProject_returns_error_if_site_manager_does_not_exist()
+    // {
+    //     $this->withoutExceptionHandling();
 
-        // $controller = new ProjectController();
-        // $response = $controller->update($request, $project->projectId);
+    //     $project = Project::factory()->create();
 
-        // $this->assertEquals(404, $response->status());
+    //     $request = new Request([
+    //         'siteManagerId' => 1,
+    //         'projectName' => 'Updated Name',
+    //         'projectDescription' => 'Updated Description',
+    //         'startDate' => '2023-07-12',
+    //         'endDate' => '2023-07-20',
+    //     ]);
 
-    }
+    //     $controller = new ProjectController();
+    //     $response = $controller->update($request, $project->projectId);
+
+    //     $this->assertEquals(404, $response->status());
+
+    // }
+
+
     public function test_archive_project()
     {
-        // $this->withoutExceptionHandling();
-        // $siteManager = SiteManager::factory()->create();
-        // $project = Project::factory()->create();
+        $this->withoutExceptionHandling();
+        $siteManager = SiteManager::factory()->create();
+        $project = Project::factory()->create(
+            [
+                'siteManagerId' => $siteManager->siteManagerId,
+            ]
+        );
 
-        // $controller = new ProjectController();
-        // $response = $controller->archive($project->projectId, $siteManager->siteManagerId);
+        $controller = new ProjectController();
+        $response = $controller->archive($project->projectId, $siteManager->siteManagerId);
 
-        // $this->assertEquals(200, $response->status());
+        $this->assertEquals(200, $response->status());
     }
 
 }

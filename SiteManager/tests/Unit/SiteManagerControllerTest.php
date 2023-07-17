@@ -2,15 +2,27 @@
 
 namespace Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
+
+use App\Http\Controllers\SiteManager\SiteManagerController;
+
+use App\Models\SiteManager;
+
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
+use Tests\TestCase;
 
 class SiteManagerControllerTest extends TestCase
 {
     /**
      * A basic unit test example.
      */
-    public function test_example(): void
+    use RefreshDatabase;
+    public function test_index_returns_list_of_site_managers(): void
     {
-        $this->assertTrue(true);
+        $this->withoutExceptionHandling();
+        $siteManager = SiteManager::factory()->create();
+        $controller = new SiteManagerController();
+        $response = $controller->index();
+        $this->assertEquals(200, $response->status());
     }
 }

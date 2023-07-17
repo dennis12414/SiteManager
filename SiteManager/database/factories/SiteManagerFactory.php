@@ -21,7 +21,7 @@ class SiteManagerFactory extends Factory
             'email' => $this->faker->unique()->safeEmail(),
             'phoneNumber' => $this->faker->phoneNumber(),
             'otp' => $this->faker->randomNumber(6),
-            
+            'phoneVerified' => $this->faker->boolean(),
         ];
     }
 }
