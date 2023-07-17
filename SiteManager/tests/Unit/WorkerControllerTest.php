@@ -83,7 +83,7 @@ class WorkerControllerTest extends TestCase
         ]);
 
         $controller = new WorkerController();
-        $response = $controller->search($worker->siteManagerId, 'fsgdfg');
+        $response = $controller->search(1, 'fsgdfg');
         //dd($response);
         $this->assertEquals(404, $response->status());     
         
