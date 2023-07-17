@@ -70,7 +70,7 @@ class ClockInsController extends Controller
 
     $clockIns = ClockIns::where('siteManagerId', $request->siteManagerId)
                 ->where('projectId', $request->projectId)
-                ->whereBetween('date', [$request->startDate, $request->endDate])
+                ->whereBetween('clockInTime', [$request->startDate, $request->endDate])
                 ->get();
 
     if ($clockIns->isEmpty()) {
