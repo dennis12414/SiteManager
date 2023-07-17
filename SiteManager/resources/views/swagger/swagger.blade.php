@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Swagger UI</title>
+    <title>API documentation</title>
     <link rel="stylesheet" href="/dist/swagger-ui.css">
 </head>
 <body>
