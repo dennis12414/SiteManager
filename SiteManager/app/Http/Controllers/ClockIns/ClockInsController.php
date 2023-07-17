@@ -28,8 +28,19 @@ class ClockInsController extends Controller
     if ($clockIn) {
         return response([
             'message' => 'Worker already clocked in',
-        ], 409);
+        ], 409); 
     }
+
+
+    //409 conflict
+    //201 created
+    //200 ok
+    //404 not found
+    //500 server error
+    //401 unauthorized
+    //403 forbidden
+   
+
 
     $date = date('Y-m-d', strtotime($request->clockInTime));
     $clockIn = ClockIns::create([
@@ -49,6 +60,28 @@ class ClockInsController extends Controller
     
    }
 
-   
-   
+   public function clockedInWorkers(Request $request){
+    $request->validate([
+        'siteManagerId' => 'required|numeric', 
+        'projectId' => 'required|numeric',
+        'startDate' => 'required|date',
+        'endDate' => 'required|date',
+    ]);
+
+    $clockIns = ClockIns::where('siteManagerId', $request->siteManagerId)
+                ->where('projectId', $request->projectId)
+                ->whereBetween('date', [$request->startDate, $request->endDate])
+                ->get();
+
+    if ($clockIns->isEmpty()) {
+        return response([
+            'message' => 'No workers clocked in',
+        ], 404); 
+    }
+
+    return response([
+        'message' => 'Workers clocked in',
+        'clockIns' => $clockIns,
+    ], 200);
+   }   
 }

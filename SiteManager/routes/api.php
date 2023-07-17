@@ -32,10 +32,11 @@ Route::Get('/projects/details/{projectId}', [ProjectController::class, 'details'
 Route::Get('/workers/{siteManagerId}',[WorkerController::class, 'show']);//show workers
 Route::post('/workers',[WorkerController::class, 'store'])->name('workers.store');//create worker
 Route::Get('/workers/search/{siteManagerId}/{searchTerm}',[WorkerController::class, 'search']);//search worker
-Route::put('/workers/update/{siteManagerId}/{phoneNumberOrName}',[WorkerController::class, 'update']);//update worker
+Route::put('/workers/update/{siteManagerId}/{phoneNumber}',[WorkerController::class, 'update']);//update worker
 Route::delete('/workers/archive/{siteManagerId}/{phoneNumber}',[WorkerController::class, 'archive']);//archive worker
 
 Route::post('/clockIn',[ClockInsController::class, 'clockIn']);//clock in
+Route::Get('/clockedInWorkers',[ClockInsController::class, 'clockedInWorkers']);//show clock ins
 
 
 Route::Get('/report/{projectId}',[ReportController::class, 'generateReport']); //`generate report
