@@ -17,7 +17,7 @@ class WorkerController extends Controller
             'phoneNumber' => 'required|numeric',
             'dateRegistered'=> 'required|date',
             'payRate' => 'required|numeric',
-            'siteManagerId' => 'required|numeric', //this should be hidden from the user, it should be gotten from the token
+            'siteManagerId' => 'required|numeric', 
         ]);
 
         //if phone number already exists
@@ -28,6 +28,14 @@ class WorkerController extends Controller
             return response([
                 'message' => 'Phone Number already exists',
             ], 409);
+        }
+
+        //site manager should exist
+        $siteManager = SiteManager::where('siteManagerId', $request->siteManagerId)->first();
+        if(!$siteManager){
+            return response([
+                'message' => 'Site Manager does not exist',
+            ], 404);
         }
 
     
@@ -77,11 +85,13 @@ class WorkerController extends Controller
         $workers = Worker::where('siteManagerId', $id)
             ->get(); 
 
+        //workers is empty
         if(!$workers){
             return response([
                 'message' => 'No workers found',
             ], 404);
         }
+
 
         return response([
             'message' => 'Retrieved successfully',
@@ -127,8 +137,8 @@ class WorkerController extends Controller
     public function archive(string $phoneNumber, string $siteManagerId){
         
         $worker = Worker::where('phoneNumber', $phoneNumber)
-                 ->where('siteManagerId', $siteManagerId)
-                    ->first();
+                  ->where('siteManagerId', $siteManagerId)
+                  ->first();
         if (!$worker) {
             return response([
                 'message' => 'Worker does not exist',

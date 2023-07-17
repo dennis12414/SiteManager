@@ -20,18 +20,16 @@ class AuthenticationController extends Controller
             'phoneNumber' => 'required|numeric',
         ]);
 
-        //if email or phone number already exists, return error
+        //if email or phone number already exist and phoneVerified is true
         $siteManager = SiteManager::where('email', $request->email)
-                     ->orWhere('phoneNumber', $request->phoneNumber)
-                     ->where('phoneVerified', true)
-                      ->first();
-
-        if ($siteManager) {
+                 ->orWhere('phoneNumber', $request->phoneNumber)
+                 ->first();
+        if ($siteManager && $siteManager->phoneVerified) {
             return response([
                 'message' => 'Email or Phone Number already exists',
             ], 409);
         }
-
+   
         $otp = rand(100000, 999999);
 
         $siteManager = SiteManager::create([

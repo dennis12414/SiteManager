@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('siteManagers', function (Blueprint $table) { 
             $table->id('siteManagerId');
             $table->string('name');
-            $table->string('email')->unique();
-            $table->string('phoneNumber')->unique();
+            $table->string('email');
+            $table->string('phoneNumber');
             $table->string('otp')->nullable();
             $table->string('password')->nullable();
             $table->softDeletes(); 

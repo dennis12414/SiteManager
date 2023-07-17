@@ -14,9 +14,7 @@ use Tests\TestCase;
 
 class ReportControllerTest extends TestCase
 {
-    /**
-     * A basic unit test example.
-     */
+
     use RefreshDatabase; 
     public function test_generateReport_returns_report_data_for_valid_project(): void
     {
@@ -53,11 +51,11 @@ class ReportControllerTest extends TestCase
             'clockInTime' => '2021-07-13 08:00:00',
         ]);
 
-        //call the generateReport method on the ReportController
+        //call the generateReport method 
         $controller = new ReportController();
         $response = $controller->generateReport($project->projectId);
 
-        //Assert that the response status is 200
+        //Assert response status is 200
         $this->assertEquals(200, $response->status());
        
     }

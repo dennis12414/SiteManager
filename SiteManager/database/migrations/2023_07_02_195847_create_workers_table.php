@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('workers', function (Blueprint $table) {
             $table->id('workerId');
             $table->string('name');
-            $table->string('phoneNumber')->unique();
+            $table->string('phoneNumber');
             $table->timestamp('dateRegistered')->nullable();
             $table->string('payRate')->nullable();
             $table->unsignedBigInteger('siteManagerId');
