@@ -64,8 +64,8 @@ class ClockInsController extends Controller
     $request->validate([
         'siteManagerId' => 'required|numeric', 
         'projectId' => 'required|numeric',
-        'startDate' => 'required|date',
-        'endDate' => 'required|date',
+        'startDate' => 'date',
+        'endDate' => 'date',
     ]);
 
     $clockIns = ClockIns::where('siteManagerId', $request->siteManagerId)
