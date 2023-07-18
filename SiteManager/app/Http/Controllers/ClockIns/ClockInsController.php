@@ -4,6 +4,7 @@ namespace App\Http\Controllers\ClockIns;
 
 use App\Http\Controllers\Controller;
 use App\Models\ClockIns;
+use App\Models\Worker;
 use Illuminate\Http\Request;
 
 class ClockInsController extends Controller
@@ -79,9 +80,21 @@ class ClockInsController extends Controller
         ], 404); 
     }
 
+
+    //get worker details from worker table
+    foreach($clockIns as $clockIn){
+        $worker = Worker::where('workerId', $clockIn->workerId)->first();
+        $clockIn->name = $worker->name;
+        $clockIn->phoneNumber = $worker->phoneNumber;
+        $clockIn->payRate = $worker->payRate;
+    }
+    
+
     return response([
         'message' => 'Workers clocked in',
         'clockIns' => $clockIns,
     ], 200);
+
+
    }   
 }
