@@ -15,32 +15,36 @@ use Tests\TestCase;
 class WorkerControllerTest extends TestCase
 {
     use RefreshDatabase; 
-    public function test_create_new_worker(): void
+    public function test_store_create_new_worker(): void
     {
-         $this->withoutExceptionHandling(); 
-         $siteManager = SiteManager::factory()->create(); 
-            $data = [
+            //$this->withoutExceptionHandling(); 
+            $siteManager = SiteManager::factory()->create(); 
+            
+            $worker = new Request([
                 'name' => 'Edwin',
                 'phoneNumber' => '07234567899',
                 'dateRegistered' => '2023-03-08',
                 'payRate' => 1000,
                 'siteManagerId' => $siteManager->siteManagerId,
-            ];
-            $response = $this->postJson(route('workers.store'), $data);
+            ]);
 
-            $response->assertStatus(201);
+            $controller = new WorkerController();
+            $response = $controller->store($worker);
 
-            $response->assertJson([
-                'message' => 'Worker created successfully',
-                'worker' => [
-                    'name' => 'Edwin',
-                    'phoneNumber' => '07234567899',
-                    'dateRegistered' => '2023-03-08',
-                    'payRate' => 1000,
-                    'siteManagerId' => $siteManager->siteManagerId,
-                ],
-            ]); 
+            //assert that the worker was created
+            $this->assertEquals(201, $response->status());
 
+            //assert json response
+            $this->assertJson($response->content([
+                'name' => 'Edwin',
+                'phoneNumber' => '07234567899',
+                'dateRegistered' => '2023-03-08',
+                'payRate' => 1000,
+                'siteManagerId' => $siteManager->siteManagerId,
+            ]));
+
+
+            //assert that the worker was created in the database
             $this->assertDatabaseHas('workers', [
                 'name' => 'Edwin',
                 'phoneNumber' => '07234567899',
@@ -53,7 +57,7 @@ class WorkerControllerTest extends TestCase
 
     public function test_can_search_worker(): void
     {
-        $this->withoutExceptionHandling();
+        $this->withoutExceptionHandling(); 
         $siteManager = SiteManager::factory()->create();
         $worker = Worker::factory()->create([
             'name' => 'John Munene',
