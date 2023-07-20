@@ -11,7 +11,7 @@ use PDF;
 
 class ReportController extends Controller
 {
-    public function generateReport(String $projectId, string $reportType = null, string $startDate = null, string $endDate = null,string $date = null){
+    public function generateReport(String $projectId,  string $startDate = null, string $endDate = null,string $date = null){
 
 
         //check if project exists
@@ -95,64 +95,56 @@ class ReportController extends Controller
             'Site Manager' => SiteManager::where('siteManagerId', $project->siteManagerId)->first()->name,
         ];
 
-        if($reportType === 'pdf'){
-            //well formated pdf
-            // $pdf = PDF::loadView('report', [
-            //     'project' => $projectData,
-            //     'workers' => $workerData,
-            //     'totalBalance' => $totalBalance,
-            // ]);
-            //return $pdf->download('report.pdf');
-        }
+        // if($reportType === 'pdf'){
+        //     //well formated pdf
+        //     // $pdf = PDF::loadView('report', [
+        //     //     'project' => $projectData,
+        //     //     'workers' => $workerData,
+        //     //     'totalBalance' => $totalBalance,
+        //     // ]);
+        //     //return $pdf->download('report.pdf');
+        // }
 
-        elseif($reportType === 'csv'){
-            $headers = array(
-                "Content-type" => "text/csv",
-                "Content-Disposition" => "attachment; filename=report.csv",
-                "Pragma" => "no-cache",
-                "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
-                "Expires" => "0"
-            );
+        // elseif($reportType === 'csv'){
+        //     $headers = array(
+        //         "Content-type" => "text/csv",
+        //         "Content-Disposition" => "attachment; filename=report.csv",
+        //         "Pragma" => "no-cache",
+        //         "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+        //         "Expires" => "0"
+        //     );
 
-            $columns = array('Name', 'Phone Number', 'Pay Rate', 'Date Registered', 'Total Days Worked', 'Total Wages', 'Paid Amount', 'Balance');
+        //     $columns = array('Name', 'Phone Number', 'Pay Rate', 'Date Registered', 'Total Days Worked', 'Total Wages', 'Paid Amount', 'Balance');
 
-            $callback = function() use ($workerData, $columns)
-            {
-                $file = fopen('php://output', 'w');
-                fputcsv($file, $columns);
+        //     $callback = function() use ($workerData, $columns)
+        //     {
+        //         $file = fopen('php://output', 'w');
+        //         fputcsv($file, $columns);
 
-                foreach($workerData as $worker) {
-                    fputcsv($file, array($worker['name'], $worker['phoneNumber'], $worker['payRate'], $worker['dateRegistered'], $worker['totalDaysWorked'], $worker['totalWages'], $worker['paidAmount'], $worker['balance']));
-                }
-                fclose($file);
-            };
-            return response()->stream($callback, 200, $headers);
+        //         foreach($workerData as $worker) {
+        //             fputcsv($file, array($worker['name'], $worker['phoneNumber'], $worker['payRate'], $worker['dateRegistered'], $worker['totalDaysWorked'], $worker['totalWages'], $worker['paidAmount'], $worker['balance']));
+        //         }
+        //         fclose($file);
+        //     };
+        //     return response()->stream($callback, 200, $headers);
 
-        }
-        else{
+        // }
+        
            //return json response
             return response([
-                'choice' => $choice,
                 'project' => $projectData,
                 'workers' => $workerData,
                 'totalBalance' => $totalBalance,
 
             ], 200); 
-        }
+        
 
     }
 
     //individual worker report
-    public function generateWorkerReport(String $workerId, string $reportType = null, string $startDate = null, string $endDate = null,string $date = null){
+    public function generateWorkerReport(String $workerId,  string $startDate = null, string $endDate = null,string $date = null){
 
-        // //check if report type is valid pdf or csv
-        // if($reportType !== 'pdf' || $reportType !== 'csv' || $reportType !== null){
-        //     return response([
-        //         'message' => 'Invalid report type',
-        //     ], 400);
-        // }
-
-        //check if worker exists
+      
         $worker = Worker::where('workerId', $workerId)->first();
         if(!$worker){
             return response([
@@ -189,64 +181,54 @@ class ReportController extends Controller
             if($clockIn->clockInTime !== null){
                 $totalDaysWorked++;
                 $amountPaid += $worker->amountPaid;
-                $totalWages += $worker->payRate;
+                //$totalWages += $worker->payRate;
                 
                 if($clockIn->amountPaid !== null){
-                    $totalPaymentAmount += $clockIn->amountPaid;
+                    $totalPaymentAmount == $clockIn->amountPaid;
                 }
+                $workered[] = [
+                    'name' => $worker->name,
+                    'phoneNumber' => $worker->phoneNumber,
+                    'payRate' => $worker->payRate,
+                    'dateRegistered' => date('d-m-Y', strtotime($worker->dateRegistered)),
+                ];
 
                 $clockInTime[] = [
                     'clockInTime' => $clockIn->clockInTime,
-                    'clockOutTime' => $clockIn->clockOutTime,
-                    'amountPaid' => $clockIn->amountPaid,
                     'date' => $clockIn->date,
                 ];
-            }
+            
+        
+            //$totalWages = ($totalDaysWorked * $worker->payRate);
+            $workerData [] = [
+                //'name' => $worker->name,
+                'date' => $clockIn->date,
+                'clockInTime' => $clockIn->clockInTime,
+                //'phoneNumber' => $worker->phoneNumber,
+                //'payRate' => $worker->payRate,
+                //'dateRegistered' => date('d-m-Y', strtotime($worker->dateRegistered)),
+                //'siteManagerId' => $worker->siteManagerId,
+                //'totalDaysWorked' => $totalDaysWorked,
+                //'totalWages' => $totalWages,
+                'totalPaidAmount' =>  $totalPaymentAmount,
+                'balance' => $worker->payRate - $clockIn->amountPaid,
+            ];
+         }
         }
-        //$totalWages = ($totalDaysWorked * $worker->payRate);
-        $workerData = [
-            'name' => $worker->name,
-            'phoneNumber' => $worker->phoneNumber,
-            'payRate' => $worker->payRate,
-            'dateRegistered' => date('d-m-Y', strtotime($worker->dateRegistered)),
-            'siteManagerId' => $worker->siteManagerId,
-            'totalDaysWorked' => $totalDaysWorked,
-            'totalWages' => $totalWages,
-            'totalPaymentAmount' => $totalPaymentAmount,
-            'balance' => $totalWages - $totalPaymentAmount,
-        ];
+        //personal details
+        // $worker = [
+        //     'name' => $worker->name,
+        //     'phoneNumber' => $worker->phoneNumber,
+        //     'payRate' => $worker->payRate,
+        //     'dateRegistered' => date('d-m-Y', strtotime($worker->dateRegistered)),
+        // ];
 
-        if($reportType === 'pdf'){
-            //$pdf = PDF::loadView('report', ['workerData' => $workerData]
-            //, ['project' => $projectData], ['totalBalance' => $totalBalance]
-        //);
-            //return $pdf->download('report.pdf');
-        }
-        elseif($reportType === 'csv'){
-            $headers = array(
-                "Content-type" => "text/csv",
-                "Content-Disposition" => "attachment; filename=report.csv",
-                "Pragma" => "no-cache",
-                "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
-                "Expires" => "0"
-            );
-            $columns = array('Name', 'Phone Number', 'Pay Rate', 'Date Registered','Total Days Worked', 'Total Wages');
-            $callback = function() use ($workerData, $columns){
-                $file = fopen('php://output', 'w');
-                fputcsv($file, $columns);
-                foreach($workerData as $worker){
-                    fputcsv($file, array($worker['name'], $worker['phoneNumber'], $worker['payRate'], $worker['dateRegistered'],$worker['totalDaysWorked'], $worker['totalWages']));
-                }
-                fclose($file);
-            };
-            return response()->stream($callback, 200, $headers);
-        }
-        else{
-           //return json response
             return response([
-                'worker' => $workerData,
+                'worker details' => $workered[0],
+                'days worked' => $workerData,
+                //'clockIns' => $clockInTime,
             ], 200);
-        }
+        
 
 
 
