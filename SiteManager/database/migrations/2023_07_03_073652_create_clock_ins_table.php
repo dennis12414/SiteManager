@@ -23,6 +23,7 @@ return new class extends Migration
             $table->foreign('siteManagerId')->references('siteManagerId')->on('siteManagers');
             $table->timestamps();
         });
+        
     }
 
     /**

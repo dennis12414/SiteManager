@@ -53,16 +53,19 @@ class WorkerController extends Controller
             'message' => 'Worker created successfully',
             'worker' => $worker->only(['workerId','name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']),
         ], 201); 
+
+        
     }
 
-    public function search(String $siteManagerId, String $searchTerm)
-    {
+    public function search(string $siteManagerId, string $searchTerm)
+    {  
         $workers = Worker::where('siteManagerId', $siteManagerId)
-            ->orWhere('phoneNumber', 'like', '%'.$searchTerm.'%')
-            ->orWhere('name', 'like', '%'.$searchTerm.'%')
+            ->where('name', 'LIKE', '%'.$searchTerm.'%')
+            ->orWhere('phoneNumber', 'LIKE', '%'.$searchTerm.'%')
             ->get(); 
 
-        if($workers->isEmpty()){
+        //workers is empty
+        if(!$workers){
             return response([
                 'message' => 'No workers found',
             ], 404);
@@ -71,21 +74,38 @@ class WorkerController extends Controller
         return response([
             'message' => 'Retrieved successfully',
             'workers' => $workers->map(function($worker){
-                return $worker->only(['workerId','name', 'phoneNumber', 'payRate', 'dateRegistered']);
+                return $worker->only(['workerId','name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']);
             })
         ], 200);
-
         
     } 
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id) 
+    public function show(string $id, string $startDate = null, string $endDate = null, string $date = null) 
     {
        
-        $workers = Worker::where('siteManagerId', $id)
-            ->get(); 
+        if($startDate && $endDate){
+            $workers = Worker::where('siteManagerId', $id)
+                ->whereBetween('dateRegistered', [$startDate, $endDate])
+                ->get();
+        }elseif($startDate){
+            $workers = Worker::where('siteManagerId', $id)
+                ->where('dateRegistered', '>=', $startDate)
+                ->get();
+        }elseif($endDate){
+            $workers = Worker::where('siteManagerId', $id)
+                ->where('dateRegistered', '<=', $endDate)
+                ->get();
+        }elseif($date){
+            $workers = Worker::where('siteManagerId', $id)
+                ->where('dateRegistered', $date)
+                ->get();
+        }
+        else{
+            $workers = Worker::where('siteManagerId', $id)->get();
+        }
 
         //workers is empty
         if(!$workers){
@@ -130,6 +150,8 @@ class WorkerController extends Controller
         $worker->save();
 
         return response([
+            'siteManager'=> $siteManager,
+            'phoneNumber' => $phoneNumber,
             'message' => 'Worker updated successfully',
             'worker' => $worker->only(['workerId','name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']),
         ], 200);
@@ -157,3 +179,5 @@ class WorkerController extends Controller
     }
 
 }
+
+

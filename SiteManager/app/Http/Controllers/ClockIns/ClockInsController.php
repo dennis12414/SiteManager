@@ -33,15 +33,6 @@ class ClockInsController extends Controller
     }
 
 
-    //409 conflict
-    //201 created
-    //200 ok
-    //404 not found
-    //500 server error
-    //401 unauthorized
-    //403 forbidden
-   
-
 
     $date = date('Y-m-d', strtotime($request->clockInTime));
     $clockIn = ClockIns::create([
@@ -61,7 +52,7 @@ class ClockInsController extends Controller
     
    }
 
-   public function clockedInWorkers(Request $request){
+   public function clockedInWorkers(Request $request, string $date = null){
     $request->validate([
         'siteManagerId' => 'required|numeric', 
         'projectId' => 'required|numeric',
@@ -69,10 +60,17 @@ class ClockInsController extends Controller
         'endDate' => 'date',
     ]);
 
-    $clockIns = ClockIns::where('siteManagerId', $request->siteManagerId)
-                ->where('projectId', $request->projectId)
-                ->whereBetween('clockInTime', [$request->startDate, $request->endDate])
-                ->get();
+    if($date){
+        $clockIns = ClockIns::where('siteManagerId', $request->siteManagerId)
+        ->where('projectId', $request->projectId)
+        ->where('date', $date)
+        ->get();
+    }else{
+        $clockIns = ClockIns::where('siteManagerId', $request->siteManagerId)
+        ->where('projectId', $request->projectId)
+        ->whereBetween('date', [$request->startDate, $request->endDate])
+        ->get();
+    }
 
     if ($clockIns->isEmpty()) {
         return response([
