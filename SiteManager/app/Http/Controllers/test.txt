@@ -1,0 +1,18 @@
+siteManagerId = 8
+
+workers
+
+
+projects
+3851805
+
+dates 
+reports
+
+clocked in workers 
+
+registered workers
+
+
+I modified the ClockIns table and added amount if a worker is paid for that day it will be filled
+

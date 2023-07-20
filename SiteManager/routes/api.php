@@ -29,14 +29,14 @@ Route::post('/projects', [ProjectController::class, 'store']);//create project
 Route::Get('/projects/details/{projectId}', [ProjectController::class, 'details']);//get project
 //Route::delete('/projects/archive/{projectId}/{siteManagerId}', [ProjectController::class, 'archive']);//archive project
 
-Route::Get('/workers/{siteManagerId}/{startDate?}/{endDate?}',[WorkerController::class, 'show']);
+Route::Get('/workers/{siteManagerId}',[WorkerController::class, 'show']);//show workers
 Route::post('/workers',[WorkerController::class, 'store'])->name('workers.store');//create worker
 Route::Get('/workers/search/{siteManagerId}/{searchTerm}',[WorkerController::class, 'search']);//search worker
 Route::put('/workers/update/{siteManagerId}/{phoneNumber}',[WorkerController::class, 'update']);//update worker
 Route::delete('/workers/archive/{siteManagerId}/{phoneNumber}',[WorkerController::class, 'archive']);//archive worker
 
 Route::post('/clockIn',[ClockInsController::class, 'clockIn']);//clock in
-Route::get('/clockedInWorker/{siteManagerId}/{projectId}/{startDate?}/{endDate?}/{searchQuery?}',[ClockInsController::class, 'clockedInWorker'])
+Route::get('/clockedInWorker/{siteManagerId}/{projectId}',[ClockInsController::class, 'clockedInWorker'])
 ->where([
     // 'siteManagerId' => '[0-9]+',
     // 'projectId' => '[0-9]+',
@@ -49,8 +49,8 @@ Route::get('/clockedInWorker/{siteManagerId}/{projectId}/{startDate?}/{endDate?}
 Route::post('/clockedInWorkers',[ClockInsController::class, 'clockedInWorkers']);//show clock ins
 
 
-Route::Get('/report/{projectId}/{startDate?}/{endDate?}',[ReportController::class, 'generateReport']);
-Route::Get('/workerReport/{workerId}/{startDate?}/{endDate?}',[ReportController::class, 'generateWorkerReport']);
+Route::Get('/report/{projectId}',[ReportController::class, 'generateReport']);
+Route::Get('/workerReport/{workerId}',[ReportController::class, 'generateWorkerReport']);
 
 Route::Get('/siteManager',[SiteManagerController::class, 'index']);//show workers
 

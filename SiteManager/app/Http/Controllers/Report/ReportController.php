@@ -12,7 +12,8 @@ use PDF;
 class ReportController extends Controller
 {
     public function generateReport(String $projectId,  string $startDate = null, string $endDate = null,string $date = null){
-
+        $startDate = request('startDate');
+        $endDate = request('endDate');
 
         //check if project exists
         $project = Project::where('projectId', $projectId)->first();
@@ -143,7 +144,8 @@ class ReportController extends Controller
 
     //individual worker report
     public function generateWorkerReport(String $workerId,  string $startDate = null, string $endDate = null,string $date = null){
-
+        $startDate = request('startDate');
+        $endDate = request('endDate');
       
         $worker = Worker::where('workerId', $workerId)->first();
         if(!$worker){
@@ -199,11 +201,11 @@ class ReportController extends Controller
                 ];
             
         
-            //$totalWages = ($totalDaysWorked * $worker->payRate);
+            $totalWages += $worker->payRate;
             $workerData [] = [
                 //'name' => $worker->name,
                 'date' => $clockIn->date,
-                'clockInTime' => $clockIn->clockInTime,
+                //'clockInTime' => $clockIn->clockInTime,
                 //'phoneNumber' => $worker->phoneNumber,
                 //'payRate' => $worker->payRate,
                 //'dateRegistered' => date('d-m-Y', strtotime($worker->dateRegistered)),
@@ -224,9 +226,11 @@ class ReportController extends Controller
         // ];
 
             return response([
+                //'start date' => $startDate,
+                //'end date' => $endDate,
                 'worker details' => $workered[0],
                 'days worked' => $workerData,
-                //'clockIns' => $clockInTime,
+                 'totalBalance' => $totalWages ,
             ], 200);
         
 

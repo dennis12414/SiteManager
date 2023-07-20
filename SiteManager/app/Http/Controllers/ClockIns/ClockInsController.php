@@ -92,12 +92,17 @@ class ClockInsController extends Controller
    
    public function clockedInWorker(string $siteManagerId, string $projectId, string $startDate = null, string $endDate = null, string $searchQuery = null)
    {
+        $startDate = request('startDate');
+        $endDate = request('endDate');
+        $searchQuery = request('searchQuery');
+
         if($startDate && $endDate){
             $clockIns = ClockIns::where('siteManagerId', $siteManagerId)
             ->where('projectId', $projectId)
             ->whereBetween('date', [$startDate, $endDate])
             ->get();
-        }else if($startDate){
+
+        }elseif($startDate){
               $clockIns = ClockIns::where('siteManagerId', $siteManagerId)
               ->where('projectId', $projectId)
               ->where('date', $startDate)
@@ -136,7 +141,7 @@ class ClockInsController extends Controller
          }
 
         return response([
-            'option' => $option,
+            //'option' => $option,
             'message' => 'Workers clocked in',
             'clockIns' => $clockIns,
         ], 200);

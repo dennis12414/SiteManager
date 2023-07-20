@@ -6,6 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\SiteManager;
 use App\Models\Worker;
 use Illuminate\Http\Request;
+//use carbon
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+
 
 use function PHPUnit\Framework\isEmpty;
 
@@ -85,17 +89,24 @@ class WorkerController extends Controller
      */
     public function show(string $id, string $startDate = null, string $endDate = null) 
     {
-       
+        $choice  =0;
+        $startDate = request('startDate');
+        $endDate = request('endDate');
+
         if($startDate && $endDate){
+            $choice = 1;
+         
             $workers = Worker::where('siteManagerId', $id)
                 ->whereBetween('dateRegistered', [$startDate, $endDate])
                 ->get();
         }elseif($startDate){
+            $choice = 2;
             $workers = Worker::where('siteManagerId', $id)
                 ->where('dateRegistered',  $startDate)
                 ->get();
         }
         else{
+            $choice = 3;
             $workers = Worker::where('siteManagerId', $id)->get();
         }
 
@@ -108,6 +119,9 @@ class WorkerController extends Controller
 
 
         return response([
+            'choice' => $choice,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
             'message' => 'Retrieved successfully',
             'workers' => $workers->map(function($worker){
                 return $worker->only(['workerId','name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']);
