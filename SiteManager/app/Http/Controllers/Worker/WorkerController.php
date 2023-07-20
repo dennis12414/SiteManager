@@ -83,7 +83,7 @@ class WorkerController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id, string $startDate = null, string $endDate = null, string $date = null) 
+    public function show(string $id, string $startDate = null, string $endDate = null) 
     {
        
         if($startDate && $endDate){
@@ -92,15 +92,7 @@ class WorkerController extends Controller
                 ->get();
         }elseif($startDate){
             $workers = Worker::where('siteManagerId', $id)
-                ->where('dateRegistered', '>=', $startDate)
-                ->get();
-        }elseif($endDate){
-            $workers = Worker::where('siteManagerId', $id)
-                ->where('dateRegistered', '<=', $endDate)
-                ->get();
-        }elseif($date){
-            $workers = Worker::where('siteManagerId', $id)
-                ->where('dateRegistered', $date)
+                ->where('dateRegistered',  $startDate)
                 ->get();
         }
         else{

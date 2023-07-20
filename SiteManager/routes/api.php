@@ -29,18 +29,40 @@ Route::post('/projects', [ProjectController::class, 'store']);//create project
 Route::Get('/projects/details/{projectId}', [ProjectController::class, 'details']);//get project
 //Route::delete('/projects/archive/{projectId}/{siteManagerId}', [ProjectController::class, 'archive']);//archive project
 
-Route::Get('/workers/{siteManagerId}/{startDate?}/{endDate?}/{date?}',[WorkerController::class, 'show']);//show workers
+Route::Get('/workers/{siteManagerId}/{startDate?}/{endDate?}',[WorkerController::class, 'show']);
 Route::post('/workers',[WorkerController::class, 'store'])->name('workers.store');//create worker
 Route::Get('/workers/search/{siteManagerId}/{searchTerm}',[WorkerController::class, 'search']);//search worker
 Route::put('/workers/update/{siteManagerId}/{phoneNumber}',[WorkerController::class, 'update']);//update worker
 Route::delete('/workers/archive/{siteManagerId}/{phoneNumber}',[WorkerController::class, 'archive']);//archive worker
 
 Route::post('/clockIn',[ClockInsController::class, 'clockIn']);//clock in
-Route::post('/clockedInWorkers/{date?}',[ClockInsController::class, 'clockedInWorkers']);//show clock ins
+Route::get('/clockedInWorker/{siteManagerId}/{projectId}/{startDate?}/{endDate?}/{searchQuery?}',[ClockInsController::class, 'clockedInWorker'])
+->where([
+    // 'siteManagerId' => '[0-9]+',
+    // 'projectId' => '[0-9]+',
+    // 'startDate' => '[0-9]{4}-[0-9]{2}-[0-9]{2}', 
+    // 'endDate' => '[0-9]{4}-[0-9]{2}-[0-9]{2}',
+    // 'searchQuery' => '[a-zA-Z0-9]+',
+    
+]);//show clock ins
+
+Route::post('/clockedInWorkers',[ClockInsController::class, 'clockedInWorkers']);//show clock ins
 
 
-Route::Get('/report/{projectId}/{reportType?}/{startDate?}/{endDate?}/{date?}',[ReportController::class, 'generateReport']); //`generate report
-Route::Get('/workerReport/{workerId}/{reportType?}/{startDate?}/{endDate?}/{date?}',[ReportController::class, 'generateWorkerReport']); //`generate report
+Route::Get('/report/{projectId}/{reportType}/{startDate?}/{endDate?}',[ReportController::class, 'generateReport'])
+->where([
+    'projectId' => '[0-9]+',
+    'reportType' => '[a-zA-Z]+',
+    'startDate' => '[0-9]{4}-[0-9]{2}-[0-9]{2}',
+    'endDate' => '[0-9]{4}-[0-9]{2}-[0-9]{2}',
+]);
+Route::Get('/workerReport/{workerId}/{reportType}/{startDate?}/{endDate?}',[ReportController::class, 'generateWorkerReport'])
+->where([
+    'workerId' => '[0-9]+',
+    'reportType' => '[a-zA-Z]+',
+    'startDate' => '[0-9]{4}-[0-9]{2}-[0-9]{2}',
+    'endDate' => '[0-9]{4}-[0-9]{2}-[0-9]{2}',
+]);
 
 Route::Get('/siteManager',[SiteManagerController::class, 'index']);//show workers
 

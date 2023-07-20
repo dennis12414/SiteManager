@@ -52,7 +52,7 @@ class ClockInsController extends Controller
     
    }
 
-   public function clockedInWorkers(Request $request, string $date = null){
+   public function clockedInWorkers(Request $request){
     $request->validate([
         'siteManagerId' => 'required|numeric', 
         'projectId' => 'required|numeric',
@@ -60,17 +60,12 @@ class ClockInsController extends Controller
         'endDate' => 'date',
     ]);
 
-    if($date){
-        $clockIns = ClockIns::where('siteManagerId', $request->siteManagerId)
-        ->where('projectId', $request->projectId)
-        ->where('date', $date)
-        ->get();
-    }else{
-        $clockIns = ClockIns::where('siteManagerId', $request->siteManagerId)
-        ->where('projectId', $request->projectId)
-        ->whereBetween('date', [$request->startDate, $request->endDate])
-        ->get();
-    }
+ 
+    $clockIns = ClockIns::where('siteManagerId', $request->siteManagerId)
+    ->where('projectId', $request->projectId)
+    ->whereBetween('date', [$request->startDate, $request->endDate])
+    ->get();
+    
 
     if ($clockIns->isEmpty()) {
         return response([
@@ -93,6 +88,62 @@ class ClockInsController extends Controller
         'clockIns' => $clockIns,
     ], 200);
 
+   }  
+   
+   public function clockedInWorker(string $siteManagerId, string $projectId, string $startDate = null, string $endDate = null, string $searchQuery = null)
+   {
+        if($startDate && $endDate){
+            $clockIns = ClockIns::where('siteManagerId', $siteManagerId)
+            ->where('projectId', $projectId)
+            ->whereBetween('date', [$startDate, $endDate])
+            ->get();
+        }else if($startDate){
+              $clockIns = ClockIns::where('siteManagerId', $siteManagerId)
+              ->where('projectId', $projectId)
+              ->where('date', $startDate)
+              ->get();
+        }
+        else{
+            $clockIns = ClockIns::where('siteManagerId', $siteManagerId)
+            ->where('projectId', $projectId)
+            ->get();
+        }
 
-   }   
+        if (!$clockIns) {
+            return response([
+                'message' => 'No workers clocked in',
+            ], 404); 
+        }
+
+        //get worker details from worker table
+        foreach($clockIns as $clockIn){
+            $worker = Worker::where('workerId', $clockIn->workerId)->first();
+            $clockIn->name = $worker->name;
+            $clockIn->phoneNumber = $worker->phoneNumber;
+            $clockIn->payRate = $worker->payRate;
+            }
+            $option = 0;
+
+         if($searchQuery)
+         {
+            $option = 1;
+            $clockIns = $clockIns->filter(function ($clockIn) use ($searchQuery) {
+                if (strpos(strtolower($clockIn->name), strtolower($searchQuery)) !== false || strpos(strtolower($clockIn->phoneNumber), strtolower($searchQuery)) !== false) {
+                    return true;
+                }
+            });
+
+         }
+
+        return response([
+            'option' => $option,
+            'message' => 'Workers clocked in',
+            'clockIns' => $clockIns,
+        ], 200);
+
+
 }
+
+}
+   
+

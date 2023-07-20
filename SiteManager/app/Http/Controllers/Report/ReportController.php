@@ -13,12 +13,6 @@ class ReportController extends Controller
 {
     public function generateReport(String $projectId, string $reportType = null, string $startDate = null, string $endDate = null,string $date = null){
 
-        //check if report type is valid pdf or csv
-        // if($reportType !== 'pdf' || $reportType !== 'csv' || $reportType !== null){
-        //     return response([
-        //         'message' => 'Invalid report type',
-        //     ], 400);
-        // }
 
         //check if project exists
         $project = Project::where('projectId', $projectId)->first();
@@ -28,29 +22,22 @@ class ReportController extends Controller
             ], 404);
         }
 
-
+        $choice = 0;
         if($startDate !== null && $endDate !== null){
             $clockIns = ClockIns::where('projectId', $projectId)
                         ->whereBetween('date', [$startDate, $endDate])
                         ->get();
+                        $choice = 1;
         }
         elseif($startDate){
             $clockIns = ClockIns::where('projectId', $projectId)
-                        ->where('date', '>=', $startDate)
+                        ->where('date',$startDate)
                         ->get();
-        }
-        elseif($endDate){
-            $clockIns = ClockIns::where('projectId', $projectId)
-                        ->where('date', '<=', $endDate)
-                        ->get();
-        }
-        elseif($date){
-            $clockIns = ClockIns::where('projectId', $projectId)
-                        ->where('date', $date)
-                        ->get();
+                        $choice = 2;
         }
         else{
             $clockIns = ClockIns::where('projectId', $projectId)->get();
+            $choice = 5;
         }
 
         if(!$clockIns){
@@ -110,13 +97,14 @@ class ReportController extends Controller
 
         if($reportType === 'pdf'){
             //well formated pdf
-            $pdf = PDF::loadView('report', [
-                'project' => $projectData,
-                'workers' => $workerData,
-                'totalBalance' => $totalBalance,
-            ]);
-            return $pdf->download('report.pdf');
+            // $pdf = PDF::loadView('report', [
+            //     'project' => $projectData,
+            //     'workers' => $workerData,
+            //     'totalBalance' => $totalBalance,
+            // ]);
+            //return $pdf->download('report.pdf');
         }
+
         elseif($reportType === 'csv'){
             $headers = array(
                 "Content-type" => "text/csv",
@@ -144,6 +132,7 @@ class ReportController extends Controller
         else{
            //return json response
             return response([
+                'choice' => $choice,
                 'project' => $projectData,
                 'workers' => $workerData,
                 'totalBalance' => $totalBalance,
@@ -177,15 +166,7 @@ class ReportController extends Controller
                         ->get();
         }elseif($startDate){
             $clockIns = ClockIns::where('workerId', $workerId)
-                        ->where('date', '>=', $startDate)
-                        ->get();
-        }elseif($endDate){
-            $clockIns = ClockIns::where('workerId', $workerId)
-                        ->where('date', '<=', $endDate)
-                        ->get();
-        }elseif($date){
-            $clockIns = ClockIns::where('workerId', $workerId)
-                        ->where('date', $date)
+                        ->where('date', $startDate)
                         ->get();
         }else{
             $clockIns = ClockIns::where('workerId', $workerId)->get();
