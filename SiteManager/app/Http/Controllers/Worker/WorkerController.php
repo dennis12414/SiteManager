@@ -87,41 +87,43 @@ class WorkerController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id, string $startDate = null, string $endDate = null) 
+    public function show(string $id, string $startDate = null, string $endDate = null, string $searchQuery = null) 
     {
-        $choice  =0;
         $startDate = request('startDate');
         $endDate = request('endDate');
+        $searchQuery = request('searchQuery');
 
         if($startDate && $endDate){
-            $choice = 1;
-         
             $workers = Worker::where('siteManagerId', $id)
                 ->whereBetween('dateRegistered', [$startDate, $endDate])
                 ->get();
         }elseif($startDate){
-            $choice = 2;
+            
             $workers = Worker::where('siteManagerId', $id)
                 ->where('dateRegistered',  $startDate)
                 ->get();
         }
         else{
-            $choice = 3;
+            
             $workers = Worker::where('siteManagerId', $id)->get();
         }
 
-        //workers is empty
         if(!$workers){
             return response([
                 'message' => 'No workers found',
             ], 404);
         }
 
+        if($searchQuery){
+            $workers = $workers->filter(function($worker) use ($searchQuery){
+                if(strpos(strtolower($worker->name), strtolower($searchQuery)) !== false || strpos(strtolower($worker->phoneNumber) , strtolower($searchQuery)) !== false){
+                    return true;
+                }
+            });
+        }
+
 
         return response([
-            'choice' => $choice,
-            'startDate' => $startDate,
-            'endDate' => $endDate,
             'message' => 'Retrieved successfully',
             'workers' => $workers->map(function($worker){
                 return $worker->only(['workerId','name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']);
