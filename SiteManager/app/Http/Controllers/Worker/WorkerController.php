@@ -166,13 +166,15 @@ class WorkerController extends Controller
 
     }
     
-    public function archive(string $phoneNumber, string $siteManagerId){
+    public function archive(string $workerId){
         
-        $worker = Worker::where('phoneNumber', $phoneNumber)
-                  ->where('siteManagerId', $siteManagerId)
+        $worker = Worker::where('workerId', $workerId)
+            //->where('siteManagerId', $siteManagerId)
                   ->first();
         if (!$worker) {
             return response([
+               
+                'workerId' => $workerId,
                 'message' => 'Worker does not exist',
             ], 404); 
         }
@@ -180,6 +182,8 @@ class WorkerController extends Controller
         $worker->delete();
 
         return response([
+           
+            'workerId' => $workerId,
             'message' => 'Worker archived successfully',
         ], 200); 
 

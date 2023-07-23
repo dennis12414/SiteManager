@@ -90,27 +90,25 @@ class ProjectController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, string $projectId)
     {
-        $request->validate([
-            'siteManagerId' => 'required|numeric', 
-            'projectName' => 'required|string',
-            'projectDescription' => 'required|string',
-            'startDate' => 'required|date',
-            'endDate' => 'required|date',
+        $request->validate([ 
+            'projectName' => 'string',
+            'projectDescription' => 'string',
+            'startDate' => 'date',
+            'endDate' => 'date',
         ]);
         
         //check if site manager exists
-        $siteManager = SiteManager::where('siteManagerId', $request->siteManagerId)->first();
-        if (!$siteManager) {
+        $project = Project::where('projectId', $request->projectId)->first();
+        if (!$project) {
             return response([
-                'message' => 'Site Manager does not exist',
+                'message' => 'Project does not exist',
             ], 404);
         }
 
         //update project
-        $project = Project::where('siteManagerId', $id)->update([
-            'siteManagerId' => $request->siteManagerId,
+        $project = Project::where('projectId', $projectId)->update([
             'projectName' => $request->projectName,
             'projectDescription' => $request->projectDescription,
             'startDate' => $request->startDate,
@@ -128,10 +126,9 @@ class ProjectController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function archive(string $projectId, string $siteManagerId)
+    public function archive(string $projectId)
     {
         $project =  Project::where('projectId', $projectId)
-                            ->where('siteManagerId', $siteManagerId)
                             ->first();
 
         if (!$project) {

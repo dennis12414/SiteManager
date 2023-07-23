@@ -188,7 +188,7 @@ class ReportController extends Controller
                 if($clockIn->amountPaid !== null){
                     $totalPaymentAmount == $clockIn->amountPaid;
                 }
-                $workered[] = [
+                $workerDetails[] = [
                     'name' => $worker->name,
                     'phoneNumber' => $worker->phoneNumber,
                     'payRate' => $worker->payRate,
@@ -228,7 +228,7 @@ class ReportController extends Controller
             return response([
                 //'start date' => $startDate,
                 //'end date' => $endDate,
-                'worker details' => $workered[0],
+                'worker details' => $workerDetails[0],
                 'days worked' => $workerData,
                  'totalBalance' => $totalWages ,
             ], 200);

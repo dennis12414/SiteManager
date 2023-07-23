@@ -352,8 +352,78 @@ paths:
                 type: object
         '500':
           description: Server error
+        
+  /site-manager-backend/SiteManager/api/projects/update/{projectId}:
+    put:
+      tags:
+        - Projects
+      summary: Update project
+      description: Update project
+      operationId: updateProject
+      parameters:
+        - name: projectId
+          in: path
+          description: The project id
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      requestBody:
+        description: Pass project details
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - projectName
+                - projectDescription
+                - startDate
+                - endDate
+              properties:
+                projectName:
+                  type: string
+                  format: string
+                  example: 'Project 1'
+                projectDescription:
+                  type: string
+                  format: string
+                  example: 'Project 1 description'
+                startDate:
+                  type: string
+                  format: string
+                  example: '2023-07-01'
+                endDate:
+                  type: string
+                  format: string
+                  example: '2023-10-01'
+              type: object
+      responses:
+        '200':
+          description: Project updated successfully
+          content:
+            application/json:
+              schema:
+                properties:
+                  project:
+                    type: object
+                    example: The project details
+                type: object
+        '404':
+          description: No project found
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: No project found
+                type: object
+        '500':
+          description: Server error
 
-  /site-manager-backend/SiteManager/api/projects/archive/{projectId}/{siteManagerId}:
+
+  /site-manager-backend/SiteManager/api/projects/archive/{projectId}:
     delete:
       tags:
         - Projects
@@ -364,14 +434,6 @@ paths:
         - name: projectId
           in: path
           description: The project id
-          required: true
-          schema:
-            type: integer
-            format: int64
-            example: 1
-        - name: siteManagerId
-          in: path
-          description: The site manager id
           required: true
           schema:
             type: integer
@@ -652,7 +714,7 @@ paths:
         '500':
           description: Server error
 
-  /site-manager-backend/SiteManager/api/workers/archive/{siteManagerId}/{phoneNumber}:
+  /site-manager-backend/SiteManager/api/workers/archive/{workerId}:
     delete:
       tags:
         - Workers
@@ -660,21 +722,14 @@ paths:
       description: Archive worker
       operationId: archiveWorker
       parameters:
-        - name: siteManagerId
+        - name: workerId
           in: path
-          description: The site manager id
+          description: The worker id
           required: true
           schema:
             type: integer
             format: int64
             example: 1
-        - name: phoneNumber
-          in: path
-          description: The worker phone number
-          required: true
-          schema:
-            type: string
-            example: '0700000000'
       responses:
         '200':
           description: Worker archived successfully
