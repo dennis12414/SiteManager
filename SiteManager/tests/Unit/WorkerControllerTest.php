@@ -25,11 +25,11 @@ class WorkerControllerTest extends TestCase
                 'phoneNumber' => '07234567899',
                 'dateRegistered' => '2023-03-08',
                 'payRate' => 1000,
-                'siteManagerId' => $siteManager->siteManagerId,
+                'siteManagerId' => $siteManager->siteManagerId, 
             ]);
 
-            $controller = new WorkerController();
-            $response = $controller->store($worker);
+            $controller = new WorkerController(); 
+            $response = $controller->store($worker); // we
 
             //assert that the worker was created
             $this->assertEquals(201, $response->status());
@@ -55,9 +55,12 @@ class WorkerControllerTest extends TestCase
 
     }
 
+    /**
+     * test searching a worker
+     */
     public function test_can_search_worker(): void
     {
-        $this->withoutExceptionHandling(); 
+        //$this->withoutExceptionHandling(); 
         $siteManager = SiteManager::factory()->create();
         $worker = Worker::factory()->create([
             'name' => 'John Munene',
@@ -74,6 +77,9 @@ class WorkerControllerTest extends TestCase
         
     }
 
+    /**
+     * test search return error if worker not found
+     */
     public function test_search_returns_not_found_if_worker_not_found(): void
     {
         $this->withoutExceptionHandling();
@@ -93,6 +99,9 @@ class WorkerControllerTest extends TestCase
         
     }
 
+    /**
+     * test if we can update a worker
+     */
     public function test_update_updates_worker(): void
     {
         $this->withoutExceptionHandling();
@@ -120,9 +129,12 @@ class WorkerControllerTest extends TestCase
         $this->assertEquals(200, $response->status());       
     }
 
+    /**
+     * test if we can delete a worker
+     */
     public function test_delete_deletes_worker(): void
     {
-        $this->withoutExceptionHandling();
+        //$this->withoutExceptionHandling();
 
         $siteManager = SiteManager::factory()->create();
         $worker = Worker::factory()->create([

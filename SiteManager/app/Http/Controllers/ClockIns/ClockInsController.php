@@ -131,7 +131,7 @@ class ClockInsController extends Controller
 
          if($searchQuery)
          {
-            $option = 1;
+           
             $clockIns = $clockIns->filter(function ($clockIn) use ($searchQuery) {
                 if (strpos(strtolower($clockIn->name), strtolower($searchQuery)) !== false || strpos(strtolower($clockIn->phoneNumber), strtolower($searchQuery)) !== false) {
                     return true;

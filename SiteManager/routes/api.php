@@ -59,8 +59,8 @@ Route::delete('/siteManager/archive/{siteManagerId}',[SiteManagerController::cla
 
 Route::post('/b2c', [MPESAController::class, 'b2cRequest']);
 
-// Route::post('v1/b2c/result', [MPESAController::class, 'result'])->name('b2c.result');
-// Route::post('v1/b2c/timeout', [MPESAController::class, 'timeout'])->name('b2c.timeout');
+Route::post('/b2c/result', [MPESAController::class, 'callback']);
+Route::post('/b2c/timeout', [MPESAController::class, 'timeout'])->name('b2c.timeout');
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();

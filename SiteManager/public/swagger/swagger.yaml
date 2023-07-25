@@ -6,7 +6,7 @@ info:
     email: ndungudennis250@gmail.com
   version: 1.0.0
 paths:
-  /site-manager-backend/SiteManager/api/register:
+  /api/register:
     post:
       tags:
         - Authentication
@@ -54,7 +54,7 @@ paths:
                     type: object
                     example: The given data was invalid.
                 type: object
-  /site-manager-backend/SiteManager/api/verify:
+  /api/verify:
     post:
       tags:
         - Authentication
@@ -104,7 +104,7 @@ paths:
                     type: string
                     example: Invalid OTP
                 type: object
-  /site-manager-backend/SiteManager/api/setPassword:
+  /api/setPassword:
     post:
       tags:
         - Authentication
@@ -154,7 +154,7 @@ paths:
                     type: string
                     example: Invalid OTP
                 type: object
-  /site-manager-backend/SiteManager/api/login:
+  /api/login:
     post:
       tags:
         - Authentication
@@ -205,7 +205,7 @@ paths:
                     example: Invalid credentials
                 type: object
 
-  /site-manager-backend/SiteManager/api/projects/{siteMagerId}:
+  /api/projects/{siteMagerId}:
     get:
       tags:
         - Projects
@@ -247,7 +247,7 @@ paths:
         '500':
           description: Server error
 
-  /site-manager-backend/SiteManager/api/projects:
+  /api/projects:
     post:
       tags:
         - Projects
@@ -313,7 +313,7 @@ paths:
                     example: The given data was invalid.
                 type: object
 
-  /site-manager-backend/SiteManager/api/projects/details/{projectId}:
+  /api/projects/details/{projectId}:
     get:
       tags:
         - Projects
@@ -353,7 +353,7 @@ paths:
         '500':
           description: Server error
         
-  /site-manager-backend/SiteManager/api/projects/update/{projectId}:
+  /api/projects/update/{projectId}:
     put:
       tags:
         - Projects
@@ -423,7 +423,7 @@ paths:
           description: Server error
           
 
-  /site-manager-backend/SiteManager/api/projects/archive/{projectId}:
+  /api/projects/archive/{projectId}:
     delete:
       tags:
         - Projects
@@ -464,7 +464,7 @@ paths:
           description: Server error
 
 
-  /site-manager-backend/SiteManager/api/workers:
+  /api/workers:
     post:
       tags:
         - Workers
@@ -530,7 +530,7 @@ paths:
                     example: The given data was invalid.
                 type: object
 
-  /site-manager-backend/SiteManager/api/workers/{siteManagerId}:
+  /api/workers/{siteManagerId}:
     get:
       tags:
         - Workers
@@ -596,7 +596,7 @@ paths:
         '500':
           description: Server error
  
-  /site-manager-backend/SiteManager/api/workers/search/{siteManagerId}/{searchTerm}:
+  /api/workers/search/{siteManagerId}/{searchTerm}:
     get:
       tags:
         - Workers
@@ -645,7 +645,7 @@ paths:
         '500':
           description: Server error
 
-  /site-manager-backend/SiteManager/api/workers/update/{siteManagerId}/{phoneNumber}:
+  /api/workers/update/{siteManagerId}/{phoneNumber}:
     put:
       tags:
         - Workers
@@ -714,7 +714,7 @@ paths:
         '500':
           description: Server error
 
-  /site-manager-backend/SiteManager/api/workers/archive/{workerId}:
+  /api/workers/archive/{workerId}:
     delete:
       tags:
         - Workers
@@ -754,7 +754,7 @@ paths:
         '500':
           description: Server error
 
-  /site-manager-backend/SiteManager/api/clockIn:
+  /api/clockIn:
     post:
       tags:
         - ClockIns
@@ -814,7 +814,7 @@ paths:
         '500':
           description: Server error
           
-  /site-manager-backend/SiteManager/api/clockedInWorkers:
+  /api/clockedInWorkers:
     post:
       tags:
         - ClockIns
@@ -876,7 +876,7 @@ paths:
         '500':
           description: Server error
   
-  /site-manager-backend/SiteManager/api/clockedInWorker/{siteManagerId}/{projectId}:
+  /api/clockedInWorker/{siteManagerId}/{projectId}:
     get:
       tags:
         - ClockIns
@@ -948,7 +948,7 @@ paths:
           description: Server error
 
       
-  /site-manager-backend/SiteManager/api/report/{projectId}:
+  /api/report/{projectId}:
     get:
       tags:
         - Reports
@@ -996,7 +996,7 @@ paths:
         '500':
           description: Server error
 
-  /site-manager-backend/SiteManager/api/workerReport/{workerId}:
+  /api/workerReport/{workerId}:
     get:
       tags:
         - Reports
@@ -1044,7 +1044,7 @@ paths:
         '500':
           description: Server error
 
-  /site-manager-backend/SiteManager/api/siteManager:
+  /api/siteManager:
     get:
       tags:
         - SiteManagers
@@ -1069,7 +1069,7 @@ paths:
         '500':
           description: Server error
 
-  /site-manager-backend/SiteManager/api/siteManager/archive/{siteManagerId}:
+  /api/siteManager/archive/{siteManagerId}:
     delete:
       tags:
         - SiteManagers
