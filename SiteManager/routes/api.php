@@ -6,6 +6,7 @@ use App\Http\Controllers\Worker\WorkerController;
 use App\Http\Controllers\ClockIns\ClockInsController;
 use App\Http\Controllers\Report\ReportController;
 use App\Http\Controllers\SiteManager\SiteManagerController;
+use App\Http\Controllers\PAYMENT\MPESAController;
 use Illuminate\Support\Facades\Route; 
 
 /*
@@ -54,10 +55,45 @@ Route::Get('/report/{projectId}',[ReportController::class, 'generateReport']);
 Route::Get('/workerReport/{workerId}',[ReportController::class, 'generateWorkerReport']);
 
 Route::Get('/siteManager',[SiteManagerController::class, 'index']);//show workers
+Route::delete('/siteManager/archive/{siteManagerId}',[SiteManagerController::class , 'destroy']);//create worker
+
+Route::post('/b2c', [MPESAController::class, 'b2cRequest']);
+
+// Route::post('v1/b2c/result', [MPESAController::class, 'result'])->name('b2c.result');
+// Route::post('v1/b2c/timeout', [MPESAController::class, 'timeout'])->name('b2c.timeout');
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+// public function b2c(){
+
+//     $credentials = [
+//         'token'=>'ISSecretKey_test_637f9bea-9094-4eb0-ac1b-46c43fb6a90d',
+//         'publishable_key'=>'ISPubKey_test_f082671e-ad0f-40ba-b734-595386c73565'
+//     ];
+
+//     // $phoneNumber = $request->phoneNumber;
+//     // $amount = $request->amount;
+    
+//     $transactions = [
+//         ['account'=>'254708374149','amount'=>'10', 'narrative'=>'Salary']
+//     ];
+    
+//     $transfer = new Transfer();
+//     $transfer->init($credentials);
+    
+//     $response=$transfer->mpesa("KES", $transactions);
+    
+//     //call approve method for approving last transaction
+//     $response = $transfer->approve($response);
+//     //json_decode($response);
+//     print_r($response);
+    
+//     // How to check or track the transfer status
+//     $response = $transfer->status($response->tracking_id);
+//     print_r($response);
+//}
 
 
 

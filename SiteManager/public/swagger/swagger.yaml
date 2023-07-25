@@ -421,7 +421,7 @@ paths:
                 type: object
         '500':
           description: Server error
-
+          
 
   /site-manager-backend/SiteManager/api/projects/archive/{projectId}:
     delete:
@@ -1066,6 +1066,38 @@ paths:
                 type: object
         '404':
           description: No site managers found
+        '500':
+          description: Server error
+
+  /site-manager-backend/SiteManager/api/siteManager/archive/{siteManagerId}:
+    delete:
+      tags:
+        - SiteManagers
+      summary: Archive site manager
+      description: Archive site manager
+      operationId: archiveSiteManager
+      parameters:
+        - name: siteManagerId
+          in: path
+          description: The site manager id
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        '200':
+          description: Site manager archived successfully
+        '404':
+          description: No site manager found
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: No site manager found
+                type: object
         '500':
           description: Server error
  

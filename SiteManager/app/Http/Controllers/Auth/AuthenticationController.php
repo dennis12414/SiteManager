@@ -29,20 +29,24 @@ class AuthenticationController extends Controller
                  ->orWhere('phoneNumber', $request->phoneNumber)
                  ->first();
             if ($siteManager) {
-                $siteManager->delete();
+                return response([
+                    'message' => 'Dummy OTP 123456',
+                ], 201);
+            }else{
+                //create
+                $siteManager = SiteManager::create([
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'phoneNumber' => $request->phoneNumber,
+                    'phoneVerified'=> true,
+                ]);
+                return response([
+                    'message' => 'Dummy OTP 123456',
+                    //'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber', 'phoneVerified']),
+                ], 201);
+              
             }
-
-            //create new
-            $siteManager = SiteManager::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'phoneNumber' => $request->phoneNumber,
-                'phoneVerified'=> true,
-            ]);
-            return response([
-                'message' => 'Dummy OTP 123456',
-                //'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber', 'phoneVerified']),
-            ], 201);
+          
         }
      
         //if email or phone number already exist and phoneVerified is true
@@ -183,8 +187,6 @@ class AuthenticationController extends Controller
 
 
     public function sendSMS($phoneNumber, $message){
-        
-
         $url = "http://172.105.90.112:8080/notification-api/v1/notification/create";
         $data = array(
             'notificationCode' => 'PMANAGER-SMS',
