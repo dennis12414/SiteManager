@@ -5,6 +5,9 @@ info:
   contact:
     email: ndungudennis250@gmail.com
   version: 1.0.0
+servers:
+  - url: http://172.105.90.112/site-manager-backend/SiteManager
+    description: Development server
 paths:
   /api/register:
     post:

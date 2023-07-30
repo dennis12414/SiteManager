@@ -5,9 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class MpesaB2C extends Model
+class MpesaTransaction extends Model
 {
     use HasFactory;
-    protected $guarded = [];
-    protected $table = 'mpesa_b2_c_s';
+    protected $table = 'mpesaTransactions';
+    protected $primaryKey = 'transactionID';
+    
 }

@@ -23,7 +23,7 @@ class SiteManagerController extends Controller
             'message' => 'Retrieved successfully',
             'env' => $env,
             'siteManagers' => $siteManagers->map(function($siteManager){
-                return $siteManager->only(['siteManagerId', 'name', 'phoneNumber', 'dateRegistered']);
+                return $siteManager->only(['siteManagerId', 'name', 'phoneNumber', 'dateRegistered','phoneVerified']);
             }),
         ], 200);
     }

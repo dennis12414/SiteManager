@@ -33,7 +33,6 @@ class ClockInsController extends Controller
     }
 
 
-
     $date = date('Y-m-d', strtotime($request->clockInTime));
     $clockIn = ClockIns::create([
         'siteManagerId' => $request->siteManagerId,
@@ -148,6 +147,31 @@ class ClockInsController extends Controller
 
 
 }
+        // $transaction = $mpesaResponse['Body']['stkCallback']['CallbackMetadata']['Item'];
+        // $amount = $transaction[0]['Value'];
+        // $mpesaReceiptNumber = $transaction[1]['Value'];
+        // $transactionDate = $transaction[3]['Value'];
+        // $phoneNumber = $transaction[4]['Value'];
+        // $merchantRequestID = $transaction[5]['Value'];
+        // $checkoutRequestID = $transaction[6]['Value'];
+        // $resultCode = $transaction[7]['Value'];
+        // $resultDesc = $transaction[8]['Value'];
+
+        // $mpesaResponse = [
+        //     'amount' => $amount,
+        //     'mpesaReceiptNumber' => $mpesaReceiptNumber,
+        //     'transactionDate' => $transactionDate,
+        //     'phoneNumber' => $phoneNumber,
+        //     'merchantRequestID' => $merchantRequestID,
+        //     'checkoutRequestID' => $checkoutRequestID,
+        //     'resultCode' => $resultCode,
+        //     'resultDesc' => $resultDesc,
+        // ];
+
+        // return response([
+        //     'message' => 'Mpesa response received',
+        //     'mpesaResponse' => $mpesaResponse,
+        // ], 200);
 
 }
    

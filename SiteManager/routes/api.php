@@ -7,6 +7,9 @@ use App\Http\Controllers\ClockIns\ClockInsController;
 use App\Http\Controllers\Report\ReportController;
 use App\Http\Controllers\SiteManager\SiteManagerController;
 use App\Http\Controllers\PAYMENT\MPESAController;
+use App\Http\Controllers\PAYMENT\MPESAResponses;
+use App\Http\Controllers\PAYMENT\C2B\C2BController;
+use App\Http\Controllers\PAYMENT\C2B\C2BResponse;
 use Illuminate\Support\Facades\Route; 
 
 /*
@@ -57,14 +60,17 @@ Route::Get('/workerReport/{workerId}',[ReportController::class, 'generateWorkerR
 Route::Get('/siteManager',[SiteManagerController::class, 'index']);//show workers
 Route::delete('/siteManager/archive/{siteManagerId}',[SiteManagerController::class , 'destroy']);//create worker
 
-Route::post('/b2c', [MPESAController::class, 'b2cRequest']);
+Route::post('/b2c', [MPESAController::class, 'simulate']);
 
-Route::post('/b2c/result', [MPESAController::class, 'callback']);
+Route::post('result', [MPESAResponses::class, 'b2CResponse']);
 Route::post('/b2c/timeout', [MPESAController::class, 'timeout'])->name('b2c.timeout');
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::post('/debitWallet', [C2BController::class, 'STKPush']);
+Route::post('confirmation', [C2BResponse::class, 'confirmation'])->name('c2b.confirmation');
 
 // public function b2c(){
 

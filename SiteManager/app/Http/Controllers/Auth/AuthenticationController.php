@@ -16,7 +16,7 @@ class AuthenticationController extends Controller
     public function register(Request $request){
         $request->validate([
             'name' => 'required|string',
-            'email' => 'required|email',
+            'email' => 'email',
             'phoneNumber' => 'required|numeric',
         ]);
 
@@ -24,7 +24,7 @@ class AuthenticationController extends Controller
         $dummyEmail = "testemail@gmail.com";
 
         if($request->phoneNumber == $dummyPhoneNumber && $request->email == $dummyEmail){
-            //if exist delete
+    
             $siteManager = SiteManager::where('email', $request->email)
                  ->orWhere('phoneNumber', $request->phoneNumber)
                  ->first();
@@ -49,16 +49,15 @@ class AuthenticationController extends Controller
           
         }
      
-        //if email or phone number already exist and phoneVerified is true
-        $siteManager = SiteManager::where('email', $request->email)
-                 ->orWhere('phoneNumber', $request->phoneNumber)
+        $siteManager = SiteManager::where('phoneNumber', $request->phoneNumber)
+                 ->where('phoneVerified', true)
                  ->first();
-        if ($siteManager && $siteManager->phoneVerified) {
+        if ($siteManager) {
             return response([
-                'message' => 'Email or Phone Number already exists',
-            ], 409);
+                'message' => 'Account with this phone number already exists',
+            ], 401);
         }
-   
+
         $otp = rand(100000, 999999);
 
         $siteManager = SiteManager::create([
@@ -90,21 +89,27 @@ class AuthenticationController extends Controller
         
         $dummyPhoneNumber = "0712345678";
         $dummyOTP = 123456;
-        $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)->first();
+
+        //if dummy phone number and dummy otp
+        if($request->phoneNumber == $dummyPhoneNumber && $request->otp == $dummyOTP){
+            $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)->first();
+           
+            return response([
+                'valid' => true,
+                'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
+            ], 201);
+        }
+
+        $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)
+                       ->where('otp', $request->otp)
+                       ->first();
+       
         if(!$siteManager){
             return response([
-                'message' => 'Phone number not found',
-            ], 401);
-        }
-    
-        if ($siteManager->otp != $request->otp && ($request->otp != $dummyOTP || $request->phoneNumber != $dummyPhoneNumber)) {
-            return response([
                 'message' => 'Invalid OTP',
-            
             ], 401);
         }
 
-        
 
         $siteManager->phoneVerified = true;
         $siteManager->otp = null;
@@ -123,16 +128,13 @@ class AuthenticationController extends Controller
             'password' => 'required|string|min:8',
         ]);
 
-        $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)->first();
+        $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)
+                        ->where('phoneVerified', true)
+                        ->first();
+
         if(!$siteManager){
             return response([
                 'message' => 'Invalid credentials',
-            ], 401);
-        }
-        //check if phone number is verified
-        if (!$siteManager->phoneVerified) {
-            return response([
-                'message' => 'Phone number not verified',
             ], 401);
         }
 
@@ -156,24 +158,13 @@ class AuthenticationController extends Controller
             'password' => 'required|string|min:8'
         ]);
 
-        $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)->first(); 
+        $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)
+                        ->where('phoneVerified', true)
+                        ->first();
+
         if(!$siteManager || !Hash::check($request->password, $siteManager->password)){
             return response([
                 'message' => 'Invalid credentials'
-            ], 401);
-        }
-
-        // Check if phone number is verified
-        if (!$siteManager->phoneVerified) {
-            return response([
-                'message' => 'Phone number not verified',
-            ], 401);
-        }
-       
-        //check if password is correct
-        if (!Hash::check($request->password, $siteManager->password)) {
-            return response([
-                'message' => 'Invalid credentials',
             ], 401);
         }
 
