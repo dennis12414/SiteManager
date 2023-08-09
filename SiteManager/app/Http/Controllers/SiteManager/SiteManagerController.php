@@ -17,13 +17,16 @@ class SiteManagerController extends Controller
 
         //read env file to know if it is local or production
         $env = env('APP_ENV');
+        $url = env('APP_URL');
+
 
 
         return response([
             'message' => 'Retrieved successfully',
             'env' => $env,
+            'url' => $url,
             'siteManagers' => $siteManagers->map(function($siteManager){
-                return $siteManager->only(['siteManagerId', 'name', 'phoneNumber', 'dateRegistered','phoneVerified']);
+                return $siteManager->only(['siteManagerId', 'name', 'phoneNumber', 'dateRegistered','phoneVerified','otp']);
             }),
         ], 200);
     }

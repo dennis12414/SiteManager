@@ -6,9 +6,11 @@
     "license": "MIT",
     "require": {
         "php": "^8.1",
+        "firebase/php-jwt": "^6.3.1",
         "guzzlehttp/guzzle": "^7.2",
         "intasend/intasend-php": "^1.0",
         "laravel/framework": "^10.10",
+        "laravel/passport": "^11.8",
         "laravel/sanctum": "^3.2",
         "laravel/tinker": "^2.8",
         "zircote/swagger-php": "^4.7"

@@ -63,7 +63,7 @@ class ProjectController extends Controller
         }
 
         return response([
-            'message' => 'Retrieve successfully',
+            'message' => 'Retrieved successfully',
             'project' => $projects->map(function($project){
                 return $project->only(['projectId','siteManagerId','projectName', 'projectDescription', 'startDate', 'endDate']);
             })

@@ -30,6 +30,7 @@ class WorkerController extends Controller
         $worker = Worker::where('phoneNumber', $request->phoneNumber)
                  ->where('siteManagerId', $request->siteManagerId)
                  ->first();
+                 
         if ($worker) {
             return response([
                 'message' => 'Phone Number already exists',
@@ -94,13 +95,15 @@ class WorkerController extends Controller
         $searchQuery = request('searchQuery');
 
         if($startDate && $endDate){
+            $startDate = $startDate . ' 00:00:00';
+            $endDate = $endDate . ' 23:59:59';
             $workers = Worker::where('siteManagerId', $id)
                 ->whereBetween('dateRegistered', [$startDate, $endDate])
                 ->get();
         }elseif($startDate){
             
             $workers = Worker::where('siteManagerId', $id)
-                ->where('dateRegistered',  $startDate)
+                ->where('dateRegistered',  [$startDate . ' 00:00:00', $startDate . ' 23:59:59'])
                 ->get();
         }
         else{
@@ -108,20 +111,21 @@ class WorkerController extends Controller
             $workers = Worker::where('siteManagerId', $id)->get();
         }
 
-        if(!$workers){
-            return response([
-                'message' => 'No workers found',
-            ], 404);
-        }
+
 
         if($searchQuery){
             $workers = $workers->filter(function($worker) use ($searchQuery){
                 if(strpos(strtolower($worker->name), strtolower($searchQuery)) !== false || strpos(strtolower($worker->phoneNumber) , strtolower($searchQuery)) !== false){
                     return true;
                 }
-            });
+            })->values();
         }
 
+        if(!$workers){
+            return response([
+                'message' => 'No workers found',
+            ], 404);
+        }
 
         return response([
             'message' => 'Retrieved successfully',

@@ -6,10 +6,11 @@ use App\Http\Controllers\Worker\WorkerController;
 use App\Http\Controllers\ClockIns\ClockInsController;
 use App\Http\Controllers\Report\ReportController;
 use App\Http\Controllers\SiteManager\SiteManagerController;
-use App\Http\Controllers\PAYMENT\MPESAController;
-use App\Http\Controllers\PAYMENT\MPESAResponses;
+use App\Http\Controllers\PAYMENT\B2C\B2CCntroller;
+use App\Http\Controllers\PAYMENT\B2C\B2CResponse;
 use App\Http\Controllers\PAYMENT\C2B\C2BController;
 use App\Http\Controllers\PAYMENT\C2B\C2BResponse;
+use App\Http\Controllers\Wallet\WalletController;
 use Illuminate\Support\Facades\Route; 
 
 /*
@@ -25,81 +26,56 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthenticationController::class, 'register']); //register
 Route::post('/verify', [AuthenticationController::class, 'verify']);//verify
 Route::post('/setPassword', [AuthenticationController::class, 'setPassword']);//set password
-
 Route::post('/login', [AuthenticationController::class, 'login']);//login
 
-Route::Get('/projects/{siteManagerId}', [ProjectController::class, 'show']);//show projects
-Route::post('/projects', [ProjectController::class, 'store']);//create project
-Route::Get('/projects/details/{projectId}', [ProjectController::class, 'details']);//get project
-Route::put('/projects/update/{projectId}', [ProjectController::class, 'update']);//update project
-Route::delete('/projects/archive/{projectId}', [ProjectController::class, 'archive']);//archive project
 
-Route::Get('/workers/{siteManagerId}',[WorkerController::class, 'show']);//show workers
-Route::post('/workers',[WorkerController::class, 'store'])->name('workers.store');//create worker
-Route::Get('/workers/search/{siteManagerId}/{searchTerm}',[WorkerController::class, 'search']);//search worker
-Route::put('/workers/update/{siteManagerId}/{phoneNumber}',[WorkerController::class, 'update']);//update worker
-Route::delete('/workers/archive/{workerId}',[WorkerController::class, 'archive']);//archive worker
-
-Route::post('/clockIn',[ClockInsController::class, 'clockIn']);//clock in
-Route::get('/clockedInWorker/{siteManagerId}/{projectId}',[ClockInsController::class, 'clockedInWorker'])
-->where([
-    // 'siteManagerId' => '[0-9]+',
-    // 'projectId' => '[0-9]+',
-    // 'startDate' => '[0-9]{4}-[0-9]{2}-[0-9]{2}', 
-    // 'endDate' => '[0-9]{4}-[0-9]{2}-[0-9]{2}',
-    // 'searchQuery' => '[a-zA-Z0-9]+',
-    
-]);//show clock ins
-
-Route::post('/clockedInWorkers',[ClockInsController::class, 'clockedInWorkers']);//show clock ins
-
-
-Route::Get('/report/{projectId}',[ReportController::class, 'generateReport']);
-Route::Get('/workerReport/{workerId}',[ReportController::class, 'generateWorkerReport']);
-
-Route::Get('/siteManager',[SiteManagerController::class, 'index']);//show workers
-Route::delete('/siteManager/archive/{siteManagerId}',[SiteManagerController::class , 'destroy']);//create worker
-
-Route::post('/b2c', [MPESAController::class, 'simulate']);
-
-Route::post('result', [MPESAResponses::class, 'b2CResponse']);
+Route::post('/payWorker', [B2CCntroller::class, 'initiatePayment']);
+Route::post('result', [B2CResponse::class, 'b2CResponse']);
 Route::post('/b2c/timeout', [MPESAController::class, 'timeout'])->name('b2c.timeout');
+
+
+Route::post('/debitWallet', [C2BController::class, 'initiatePayment']);
+Route::post('confirmation', [C2BResponse::class, 'confirmation']);
+Route::get('/walletBalance/{phoneNumber}', [WalletController::class, 'getWalletBalance']);
+Route::get('/walletTransactions/{phoneNumber}', [WalletController::class, 'getWalletTransactions']);
+
+
+Route::middleware('auth:api')->group(function () { 
+
+    Route::post('/logout', [AuthenticationController::class, 'logout']);
+
+    Route::Get('/projects/{siteManagerId}', [ProjectController::class, 'show']);//show projects
+    Route::post('/projects', [ProjectController::class, 'store']);//create project
+    Route::Get('/projects/details/{projectId}', [ProjectController::class, 'details']);//get project
+    Route::put('/projects/update/{projectId}', [ProjectController::class, 'update']);//update project
+    Route::delete('/projects/archive/{projectId}', [ProjectController::class, 'archive']);//archive project
+
+    Route::Get('/workers/{siteManagerId}',[WorkerController::class, 'show']);//show workers
+    Route::post('/workers',[WorkerController::class, 'store'])->name('workers.store');//create worker
+    Route::Get('/workers/search/{siteManagerId}/{searchTerm}',[WorkerController::class, 'search']);//search worker
+    Route::put('/workers/update/{siteManagerId}/{phoneNumber}',[WorkerController::class, 'update']);//update worker
+    Route::delete('/workers/archive/{workerId}',[WorkerController::class, 'archive']);//archive worker
+
+    Route::post('/clockIn',[ClockInsController::class, 'clockIn']);//clock in
+    Route::get('/clockedInWorker/{siteManagerId}/{projectId}',[ClockInsController::class, 'clockedInWorker']);
+
+    Route::post('/clockedInWorkers',[ClockInsController::class, 'clockedInWorkers']);//show clock ins
+
+
+    Route::Get('/report/{projectId}',[ReportController::class, 'generateReport']);
+    Route::Get('/workerReport/{workerId}',[ReportController::class, 'generateWorkerReport']);
+
+    Route::Get('/siteManager',[SiteManagerController::class, 'index']);//show workers
+    Route::delete('/siteManager/archive/{siteManagerId}',[SiteManagerController::class , 'destroy']);//create worker
+
+});
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('/debitWallet', [C2BController::class, 'STKPush']);
-Route::post('confirmation', [C2BResponse::class, 'confirmation'])->name('c2b.confirmation');
 
-// public function b2c(){
 
-//     $credentials = [
-//         'token'=>'ISSecretKey_test_637f9bea-9094-4eb0-ac1b-46c43fb6a90d',
-//         'publishable_key'=>'ISPubKey_test_f082671e-ad0f-40ba-b734-595386c73565'
-//     ];
-
-//     // $phoneNumber = $request->phoneNumber;
-//     // $amount = $request->amount;
-    
-//     $transactions = [
-//         ['account'=>'254708374149','amount'=>'10', 'narrative'=>'Salary']
-//     ];
-    
-//     $transfer = new Transfer();
-//     $transfer->init($credentials);
-    
-//     $response=$transfer->mpesa("KES", $transactions);
-    
-//     //call approve method for approving last transaction
-//     $response = $transfer->approve($response);
-//     //json_decode($response);
-//     print_r($response);
-    
-//     // How to check or track the transfer status
-//     $response = $transfer->status($response->tracking_id);
-//     print_r($response);
-//}
 
 
 

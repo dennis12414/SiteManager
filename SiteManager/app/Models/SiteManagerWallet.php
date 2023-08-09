@@ -10,4 +10,16 @@ class SiteManagerWallet extends Model
     use HasFactory;
     protected $table = 'wallets';
     protected $primaryKey = 'walletId';
+
+    protected $fillable = [
+        'siteManagerId',
+        'phoneNumber',
+        'balance',
+    ];
+    
 }
+
+
+
+
+

@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\LoginRequest;
+use App\Models\SiteManagerWallet;
 use Illuminate\Http\Request;
 use App\Models\SiteManager;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+
 
 
 class AuthenticationController extends Controller
@@ -75,7 +78,7 @@ class AuthenticationController extends Controller
 
         return response([
             'message' => 'An OTP has been sent to ' . $phoneNumber . '',
-            
+             //'otp' => $otp,
         ], 201);
         
 
@@ -115,9 +118,17 @@ class AuthenticationController extends Controller
         $siteManager->otp = null;
         $siteManager->save();
 
+        $wallet = SiteManagerWallet::create([
+            'siteManagerId' => $siteManager->siteManagerId,
+            'phoneNumber' => $request->phoneNumber,
+        ]);
+
+        $token = $siteManager->createToken('siteManagerToken')->accessToken;
+
         return response([
             'valid' => true,
             'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
+            'token' => $token
         ], 201);
 
     }
@@ -153,6 +164,7 @@ class AuthenticationController extends Controller
     }
 
     public function login(Request $request){
+        //use auth
         $request->validate([
             'phoneNumber' => 'required|numeric',
             'password' => 'required|string|min:8'
@@ -162,16 +174,85 @@ class AuthenticationController extends Controller
                         ->where('phoneVerified', true)
                         ->first();
 
-        if(!$siteManager || !Hash::check($request->password, $siteManager->password)){
+        if(!$siteManager){
             return response([
-                'message' => 'Invalid credentials'
+                'message' => 'Invalid credentials',
             ], 401);
         }
+
+        if(!Hash::check($request->password, $siteManager->password)){
+            return response([
+                'message' => 'Invalid credentials',
+            ], 401);
+        }
+
+        $token = $siteManager->createToken('siteManagerToken')->accessToken;
 
         return response([
             'valid' => true,
             'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
+            'token' => $token
         ], 201);
+
+        // $data  = $request->only(['phoneNumber', 'password']);
+
+        // if(!Auth::attempt($data)){
+        //     return response([
+        //         'message' => 'Unauthorized'
+        //     ], 401);
+        // }else{
+        //     $siteManager = Auth::user();
+        //     $token = $siteManager->createToken('siteManagerToken')->accessToken;
+
+        //     return response([
+        //         'valid' => true,
+        //         //'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
+        //         //'token' => $token
+        //     ], 201);
+        // }
+
+        // Auth::attempt(['phoneNumber' => $request->phoneNumber, 'password' => $request->password]);
+
+        // if(!Auth::check()){
+        //     return response([
+        //         'message' => 'Invalid credentials'
+        //     ], 401);
+        // }
+
+        // $siteManager = Auth::user();
+
+        // $token = $siteManager->createToken('siteManagerToken')->accessToken;
+
+        // return response([
+        //     'valid' => true,
+        //     'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
+        //     'token' => $token
+        // ], 201);
+
+
+
+        // $request->validate([
+        //     'phoneNumber' => 'required|numeric',
+        //     'password' => 'required|string|min:8'
+        // ]);
+
+        // $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)
+        //                 ->where('phoneVerified', true)
+        //                 ->first();
+
+        // if(!$siteManager || !Hash::check($request->password, $siteManager->password)){
+        //     return response([
+        //         'message' => 'Invalid credentials'
+        //     ], 401);
+        // }
+
+        // $token = $siteManager->createToken('siteManagerToken')->accessToken;
+
+        // return response([
+        //     'valid' => true,
+        //     'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
+        //     'token' => $token
+        // ], 201);
         
 
     }
@@ -201,6 +282,13 @@ class AuthenticationController extends Controller
 
         return $result;
 
+    }
+
+    public function logout(Request $request){
+        $request->user()->token()->revoke();
+        return response([
+            'message' => 'Logged out successfully'
+        ], 201);
     }
 }
 

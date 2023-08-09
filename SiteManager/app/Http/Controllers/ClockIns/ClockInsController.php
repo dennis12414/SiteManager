@@ -57,6 +57,7 @@ class ClockInsController extends Controller
         'projectId' => 'required|numeric',
         'startDate' => 'date',
         'endDate' => 'date',
+        'searchTerm' => 'string',
     ]);
 
  
@@ -66,11 +67,8 @@ class ClockInsController extends Controller
     ->get();
     
 
-    if ($clockIns->isEmpty()) {
-        return response([
-            'message' => 'No workers clocked in',
-        ], 404); 
-    }
+
+
 
 
     //get worker details from worker table
@@ -80,6 +78,24 @@ class ClockInsController extends Controller
         $clockIn->phoneNumber = $worker->phoneNumber;
         $clockIn->payRate = $worker->payRate;
     }
+
+    //search for worker if search term is not null
+    if ($request->searchTerm != null || $request->searchTerm != "") {
+        $clockIns = $clockIns->filter(function($clockIn) use ($request) {
+            $worker = Worker::where('workerId', $clockIn->workerId)->first();
+            if (stripos($worker->name, $request->searchTerm) !== false || stripos($worker->phoneNumber, $request->searchTerm) !== false) {
+                return true;
+            }
+            return false;
+        });
+    }
+
+    if ($clockIns->isEmpty()) {
+        return response([
+            'message' => 'No workers clocked in',
+        ], 404); 
+    }
+
     
 
     return response([

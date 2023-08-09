@@ -25,6 +25,8 @@ class ReportController extends Controller
 
         $choice = 0;
         if($startDate !== null && $endDate !== null){
+            $startDate = $startDate . ' 00:00:00';
+            $endDate = $endDate . ' 23:59:59';
             $clockIns = ClockIns::where('projectId', $projectId)
                         ->whereBetween('date', [$startDate, $endDate])
                         ->get();
@@ -32,7 +34,7 @@ class ReportController extends Controller
         }
         elseif($startDate){
             $clockIns = ClockIns::where('projectId', $projectId)
-                        ->where('date',$startDate)
+                        ->where('date', [$startDate . ' 00:00:00', $startDate . ' 23:59:59'])
                         ->get();
                         $choice = 2;
         }
@@ -155,12 +157,14 @@ class ReportController extends Controller
         }
 
         if($startDate && $endDate){
+            $startDate = $startDate . ' 00:00:00';
+            $endDate = $endDate . ' 23:59:59';
             $clockIns = ClockIns::where('workerId', $workerId)
                         ->whereBetween('date', [$startDate, $endDate])
                         ->get();
         }elseif($startDate){
             $clockIns = ClockIns::where('workerId', $workerId)
-                        ->where('date', $startDate)
+                        ->where('date', [$startDate . ' 00:00:00', $startDate . ' 23:59:59'])
                         ->get();
         }else{
             $clockIns = ClockIns::where('workerId', $workerId)->get();
