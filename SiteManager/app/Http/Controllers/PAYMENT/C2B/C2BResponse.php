@@ -86,9 +86,11 @@ class C2BResponse extends Controller
                     //'balance' => $wallet->balance
                 ], 200);
             }
+        
             } catch (Exception $exception) {
                 Log::error($exception);
             }
+        
     }
 
 }
