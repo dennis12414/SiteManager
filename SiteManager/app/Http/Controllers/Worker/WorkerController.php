@@ -139,7 +139,7 @@ class WorkerController extends Controller
     /**
      * Update worker details
      */
-    public function update(Request $request,string $siteManager, string $phoneNumber)
+    public function update(Request $request,string $workerId)
     {
         $request->validate([
             'name' => 'required|string',
@@ -147,8 +147,7 @@ class WorkerController extends Controller
             'payRate' => 'required|numeric',
         ]);
 
-        $worker = Worker::where('phoneNumber', $phoneNumber)
-            ->where('siteManagerId', $siteManager)
+        $worker = Worker::where('workerId', $workerId)
             ->first();
         if(!$worker){
             return response([
@@ -162,8 +161,6 @@ class WorkerController extends Controller
         $worker->save();
 
         return response([
-            'siteManager'=> $siteManager,
-            'phoneNumber' => $phoneNumber,
             'message' => 'Worker updated successfully',
             'worker' => $worker->only(['workerId','name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']),
         ], 200);

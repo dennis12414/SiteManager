@@ -112,10 +112,10 @@ class C2BController extends Controller
             return $access_token;
       }
 
-      public function hundleCallback(Request $request){
+    //   public function hundleCallback(Request $request){
         
-        $response = C2BResponse::confirmation();
+    //     $response = C2BResponse::confirmation();
 
-      }
+    //   }
 
 }

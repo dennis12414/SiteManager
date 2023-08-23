@@ -71,6 +71,7 @@ class C2BResponse extends Controller
                         'siteManagerId' => $siteManager->siteManagerId,
                         'phoneNumber' => $phoneNumber,
                         'balance' => $amount,
+                        'availableBalance' => $amount,
                     ]);
                     Log::info('wallet created');
                  

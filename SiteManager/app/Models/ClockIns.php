@@ -10,6 +10,7 @@ class ClockIns extends Model
     use HasFactory;
 
     protected $table = 'clockIns';
+    protected $primaryKey = 'clockId';
 
     protected $fillable = [
         'siteManagerId',

@@ -6,10 +6,17 @@ info:
     email: ndungudennis250@gmail.com
   version: 1.0.0
 servers:
-  - url: http://172.105.90.112/site-manager-backend/SiteManager
-    description: Production server
   - url: http://localhost
     description: Development server
+  - url: http://172.105.90.112/site-manager-backend/SiteManager
+    description: Production server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
 
 paths:
   /api/register:
@@ -43,6 +50,8 @@ paths:
                   format: string
                   example: '0712345678'
               type: object
+              security:
+                - bearerAuth: []
       responses:
         '201':
           description: Success
@@ -211,50 +220,6 @@ paths:
                     example: Invalid credentials
                 type: object
 
-  /api/projects/{siteMagerId}:
-    get:
-      tags:
-        - Projects
-      summary: Get list of projects belonging to a site manager
-      description: Get list of projects belonging to a site manager
-      operationId: getProjects
-      parameters:
-        - name: siteMagerId
-          in: path
-          description: The site manager id
-          required: true
-          schema:
-            type: integer
-            format: int64
-            example: 1
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                properties:
-                  projects:
-                    type: array
-                    items:
-                      type: object
-                      example: The project details
-                type: object
-        '404':
-          description: No projects found
-          content:
-            application/json:
-              schema:
-                properties:
-                  message:
-                    type: string
-                    example: No projects found
-                type: object
-        '500':
-          description: Server error
-
   /api/projects:
     post:
       tags:
@@ -309,19 +274,50 @@ paths:
                     type: object
                     example: The project details
                 type: object
-        '422':
-          description: Invalid data
+
+  /api/projects/{siteMagerId}:
+    get:
+      tags:
+        - Projects
+      summary: Get list of projects belonging to a site manager
+      description: Get list of projects belonging to a site manager
+      operationId: getProjects
+      parameters:
+        - name: siteMagerId
+          in: path
+          description: The site manager id
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                properties:
+                  projects:
+                    type: array
+                    items:
+                      type: object
+                      example: The project details
+                type: object
+        '404':
+          description: No projects found
           content:
             application/json:
               schema:
                 properties:
                   message:
                     type: string
-                    example: The name has already been taken.
-                  errors:
-                    type: object
-                    example: The given data was invalid.
+                    example: No projects found
                 type: object
+        '500':
+          description: Server error
 
   /api/projects/details/{projectId}:
     get:
@@ -339,6 +335,8 @@ paths:
             type: integer
             format: int64
             example: 1
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Success
@@ -408,6 +406,8 @@ paths:
                   format: string
                   example: '2023-10-01'
               type: object
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Project updated successfully
@@ -449,6 +449,8 @@ paths:
             type: integer
             format: int64
             example: 1
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Project archived successfully
@@ -515,6 +517,8 @@ paths:
                   format: string
                   example: '2023-07-01'
               type: object
+      security:
+        - bearerAuth: []
       responses:
         '201':
           description: Worker created successfully
@@ -525,19 +529,6 @@ paths:
                   worker:
                     type: object
                     example: The worker details
-                type: object
-        '422':
-          description: Invalid data
-          content:
-            application/json:
-              schema:
-                properties:
-                  message:
-                    type: string
-                    example: The name has already been taken.
-                  errors:
-                    type: object
-                    example: The given data was invalid.
                 type: object
 
   /api/workers/{siteManagerId}:
@@ -580,6 +571,8 @@ paths:
             type: string
             format: string
             example: 'John'
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Success
@@ -629,6 +622,8 @@ paths:
           schema:
             type: string
             example: 'John'
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Success
@@ -655,7 +650,7 @@ paths:
         '500':
           description: Server error
 
-  /api/workers/update/{siteManagerId}/{phoneNumber}:
+  /api/workers/update/{workerId}:
     put:
       tags:
         - Workers
@@ -663,21 +658,15 @@ paths:
       description: Update worker
       operationId: updateWorker
       parameters:
-        - name: siteManagerId
+        - name: workerId
           in: path
-          description: The site manager id
+          description: The worker's id
           required: true
           schema:
             type: integer
             format: int64
             example: 1
-        - name: phoneNumber
-          in: path
-          description: The worker phone number
-          required: true
-          schema:
-            type: string
-            example: '0700000000'
+
       requestBody:
         description: Pass worker details
         required: true
@@ -700,6 +689,8 @@ paths:
                   format: int64
                   example: 1000
               type: object
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Worker updated successfully
@@ -740,6 +731,8 @@ paths:
             type: integer
             format: int64
             example: 1
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Worker archived successfully
@@ -800,6 +793,8 @@ paths:
                   format: date-time
                   example: '2023-07-20'
               type: object
+      security:
+        - bearerAuth: []
       responses:
         '201':
           description: Clocked in successfully
@@ -824,69 +819,71 @@ paths:
         '500':
           description: Server error
           
-  /api/clockedInWorkers:
-    post:
-      tags:
-        - ClockIns
-      summary: Get all clocked in workers
-      description: Get all clocked in workers
-      operationId: getAllClockedInWorkers
-      requestBody:
-        description: Pass site manager id
-        required: true
-        content:
-          application/json:
-            schema:
-              required:
-                - siteManagerId
-                - projectId
-              properties:
-                siteManagerId:
-                  type: integer
-                  format: int64
-                  example: 1
-                projectId:
-                  type: integer
-                  format: int64
-                  example: 1
-                startDate:
-                  type: string
-                  format: date-time
-                  example: '2023-07-20'
-                endDate:
-                  type: string
-                  format: date-time
-                  example: '2023-07-20'
-                searchTerm:
-                  type: string
-                  format: string
-                  example: 'John'
-              type: object
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                properties:
-                  workers:
-                    type: array
-                    items:
-                      type: object
-                      example: The worker details
-                type: object
-        '404':
-          description: No workers found
-          content:
-            application/json:
-              schema:
-                properties:
-                  message:
-                    type: string
-                    example: No workers found
-                type: object
-        '500':
-          description: Server error
+  # /api/clockedInWorkers:
+  #   post:
+  #     tags:
+  #       - ClockIns
+  #     summary: Get all clocked in workers
+  #     description: Get all clocked in workers
+  #     operationId: getAllClockedInWorkers
+  #     requestBody:
+  #       description: Pass site manager id
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             required:
+  #               - siteManagerId
+  #               - projectId
+  #             properties:
+  #               siteManagerId:
+  #                 type: integer
+  #                 format: int64
+  #                 example: 1
+  #               projectId:
+  #                 type: integer
+  #                 format: int64
+  #                 example: 1
+  #               startDate:
+  #                 type: string
+  #                 format: date-time
+  #                 example: '2023-07-20'
+  #               endDate:
+  #                 type: string
+  #                 format: date-time
+  #                 example: '2023-07-20'
+  #               searchTerm:
+  #                 type: string
+  #                 format: string
+  #                 example: 'John'
+  #             type: object
+  #     security:
+  #       - bearerAuth: []
+  #     responses:
+  #       '200':
+  #         description: Success
+  #         content:
+  #           application/json:
+  #             schema:
+  #               properties:
+  #                 workers:
+  #                   type: array
+  #                   items:
+  #                     type: object
+  #                     example: The worker details
+  #               type: object
+  #       '404':
+  #         description: No workers found
+  #         content:
+  #           application/json:
+  #             schema:
+  #               properties:
+  #                 message:
+  #                   type: string
+  #                   example: No workers found
+  #               type: object
+  #       '500':
+  #         description: Server error
   
   /api/clockedInWorker/{siteManagerId}/{projectId}:
     get:
@@ -935,6 +932,8 @@ paths:
           schema:
             type: string
             example: '0700000000'
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Success
@@ -992,6 +991,8 @@ paths:
             type: string
             format: date-time
             example: '2023-07-20'
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Report generated successfully
@@ -1008,53 +1009,55 @@ paths:
         '500':
           description: Server error
 
-  /api/workerReport/{workerId}:
-    get:
-      tags:
-        - Reports
-      summary: Generate worker report
-      description: Generate worker report
-      operationId: generateWorkerReport
-      parameters:
-        - name: workerId
-          in: path
-          description: The worker id
-          required: true
-          schema:
-            type: integer
-            format: int64
-            example: 1
-        - name: startDate
-          in: query
-          description: The start date
-          required: false
-          schema:
-            type: string
-            format: date-time
-            example: '2023-07-20'
-        - name: endDate
-          in: query
-          description: The end date
-          required: false
-          schema:
-            type: string
-            format: date-time
-            example: '2023-07-20'
-      responses:
-        '200':
-          description: Report generated successfully
-        '404':
-          description: No report found
-          content:
-            application/json:
-              schema:
-                properties:
-                  message:
-                    type: string
-                    example: No report found
-                type: object
-        '500':
-          description: Server error
+  # /api/workerReport/{workerId}:
+  #   get:
+  #     tags:
+  #       - Reports
+  #     summary: Generate worker report
+  #     description: Generate worker report
+  #     operationId: generateWorkerReport
+  #     parameters:
+  #       - name: workerId
+  #         in: path
+  #         description: The worker id
+  #         required: true
+  #         schema:
+  #           type: integer
+  #           format: int64
+  #           example: 1
+  #       - name: startDate
+  #         in: query
+  #         description: The start date
+  #         required: false
+  #         schema:
+  #           type: string
+  #           format: date-time
+  #           example: '2023-07-20'
+  #       - name: endDate
+  #         in: query
+  #         description: The end date
+  #         required: false
+  #         schema:
+  #           type: string
+  #           format: date-time
+  #           example: '2023-07-20'
+  #     security:
+  #       - bearerAuth: []
+  #     responses:
+  #       '200':
+  #         description: Report generated successfully
+  #       '404':
+  #         description: No report found
+  #         content:
+  #           application/json:
+  #             schema:
+  #               properties:
+  #                 message:
+  #                   type: string
+  #                   example: No report found
+  #               type: object
+  #       '500':
+  #         description: Server error
 
   /api/siteManager:
     get:
@@ -1063,6 +1066,8 @@ paths:
       summary: Get all site managers
       description: Get all site managers
       operationId: getAllSiteManagers
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Success
@@ -1097,6 +1102,8 @@ paths:
             type: integer
             format: int64
             example: 1
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Site manager archived successfully
@@ -1112,6 +1119,143 @@ paths:
                 type: object
         '500':
           description: Server error
+
+  /api/debitWallet:
+    post:
+      tags:
+        - Wallets
+      summary: Debit wallet
+      description: Debit site manager's wallet
+      operationId: debit
+      requestBody:
+        description: Pass payment details
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - phoneNumber
+                - amount
+
+              properties:
+                phoneNumber:
+                  type: string
+                  format: string
+                  example: '0712345678'
+                amount:
+                  type: string
+                  format: string
+                  example: '1'
+              type: object
+
+      responses:
+        '201':
+          description: Success
+
+        '404':
+          description: Invalid data
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    example: Phone number not found.
+                type: object 
+
+  /api/walletBalance/{phoneNumber}:
+    get:
+      tags:
+        - Wallets
+      summary: Get wallet balance
+      description: Get wallet balance
+      operationId: walletBalance
+      parameters:
+        - name: phoneNumber
+          in: path
+          description: phone number
+          required: true
+          schema:
+            type: string
+            example: '0712345678'
  
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                properties:
+                  workers:
+                    type: array
+                    items:
+                      type: object
+                      example: The wallet balance
+                type: object
+        '404':
+          description: Wallet not found
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: Wallet not found
+                type: object
+        '500':
+          description: Server error
+
+  /api/payWorker:
+    post:
+      tags:
+        - Payments
+      summary: Pay worker
+      description: Pay worker
+      operationId: payment
+      requestBody:
+        description: Pass payment details
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - siteManagerId
+                - projectId
+                - workerId
+                - date
+
+              properties:
+                siteManagerId:
+                  type: integer
+                  format: int64
+                  example: 1
+                projectId:
+                  type: integer
+                  format: int64
+                  example: 1
+                workerId:
+                  type: integer
+                  format: int64
+                  example: 1
+                date:
+                  type: string
+                  format: string
+                  example: '2023-07-01'
+              type: object
+
+      responses:
+        '201':
+          description: Success
+
+        '404':
+          description: Invalid data
+          content:
+            application/json:
+              schema:
+                properties:
+                  errors:
+                    type: object
+                    example: Insufficient funds.
+                type: object 
 
     

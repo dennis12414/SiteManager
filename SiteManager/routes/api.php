@@ -53,7 +53,7 @@ Route::middleware('auth:api')->group(function () {
     Route::Get('/workers/{siteManagerId}',[WorkerController::class, 'show']);//show workers
     Route::post('/workers',[WorkerController::class, 'store'])->name('workers.store');//create worker
     Route::Get('/workers/search/{siteManagerId}/{searchTerm}',[WorkerController::class, 'search']);//search worker
-    Route::put('/workers/update/{siteManagerId}/{phoneNumber}',[WorkerController::class, 'update']);//update worker
+    Route::put('/workers/update/{workerId}',[WorkerController::class, 'update']);//update worker
     Route::delete('/workers/archive/{workerId}',[WorkerController::class, 'archive']);//archive worker
 
     Route::post('/clockIn',[ClockInsController::class, 'clockIn']);//clock in
