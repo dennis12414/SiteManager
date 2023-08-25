@@ -37,11 +37,10 @@ Route::post('/b2c/timeout', [MPESAController::class, 'timeout'])->name('b2c.time
 
 Route::post('/debitWallet', [C2BController::class, 'initiatePayment']);
 Route::post('confirmation', [C2BResponse::class, 'confirmation']);
-Route::get('/walletBalance/{phoneNumber}', [WalletController::class, 'getWalletBalance']);
-Route::get('/walletTransactions/{phoneNumber}', [WalletController::class, 'getWalletTransactions']);
 
 
-//Route::middleware('auth:api')->group(function () { 
+
+Route::middleware('auth:api')->group(function () { 
 
     Route::post('/logout', [AuthenticationController::class, 'logout']);
 
@@ -69,7 +68,10 @@ Route::get('/walletTransactions/{phoneNumber}', [WalletController::class, 'getWa
     Route::Get('/siteManager',[SiteManagerController::class, 'index']);//show workers
     Route::delete('/siteManager/archive/{siteManagerId}',[SiteManagerController::class , 'destroy']);//create worker
 
-//});
+    Route::get('/walletBalance/{phoneNumber}', [WalletController::class, 'getWalletBalance']);
+    Route::get('/walletTransactions/{phoneNumber}', [WalletController::class, 'getWalletTransactions']);
+
+});
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
