@@ -33,9 +33,6 @@ Route::post('/payWorker', [B2CCntroller::class, 'initiatePayment']);
 Route::post('callback', [B2CResponse::class, 'b2CResponse']);
 Route::post('/b2c/timeout', [MPESAController::class, 'timeout'])->name('b2c.timeout');
 
-
-
-Route::post('/debitWallet', [C2BController::class, 'initiatePayment']);
 Route::post('confirmation', [C2BResponse::class, 'confirmation']);
 
 
@@ -70,6 +67,8 @@ Route::middleware('auth:api')->group(function () {
 
     Route::get('/walletBalance/{phoneNumber}', [WalletController::class, 'getWalletBalance']);
     Route::get('/walletTransactions/{phoneNumber}', [WalletController::class, 'getWalletTransactions']);
+
+    Route::post('/debitWallet', [C2BController::class, 'initiatePayment']);
 
 });
 
