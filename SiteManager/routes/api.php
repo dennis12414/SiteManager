@@ -30,8 +30,9 @@ Route::post('/login', [AuthenticationController::class, 'login']);//login
 
 
 Route::post('/payWorker', [B2CCntroller::class, 'initiatePayment']);
-Route::post('result', [B2CResponse::class, 'b2CResponse']);
+Route::post('callback', [B2CResponse::class, 'b2CResponse']);
 Route::post('/b2c/timeout', [MPESAController::class, 'timeout'])->name('b2c.timeout');
+
 
 
 Route::post('/debitWallet', [C2BController::class, 'initiatePayment']);
@@ -40,7 +41,7 @@ Route::get('/walletBalance/{phoneNumber}', [WalletController::class, 'getWalletB
 Route::get('/walletTransactions/{phoneNumber}', [WalletController::class, 'getWalletTransactions']);
 
 
-Route::middleware('auth:api')->group(function () { 
+//Route::middleware('auth:api')->group(function () { 
 
     Route::post('/logout', [AuthenticationController::class, 'logout']);
 
@@ -68,7 +69,7 @@ Route::middleware('auth:api')->group(function () {
     Route::Get('/siteManager',[SiteManagerController::class, 'index']);//show workers
     Route::delete('/siteManager/archive/{siteManagerId}',[SiteManagerController::class , 'destroy']);//create worker
 
-});
+//});
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();

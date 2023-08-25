@@ -88,7 +88,7 @@ class C2BResponse extends Controller
                 ], 200);
             }
         
-            } catch (Exception $exception) {
+            } catch (\Exception $exception) {
                 Log::error($exception);
             }
         

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\SiteManager;
 use App\Models\SiteManager;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Log;
 
 class SiteManagerController extends Controller
 {
@@ -65,5 +65,12 @@ class SiteManagerController extends Controller
             'message' => 'Site Manager deleted successfully',
         ], 200);
         
+    }
+
+    public function resul(){
+        Log::info("im here");
+        return response([
+            'message'=>'hello',
+        ],200);
     }
 }

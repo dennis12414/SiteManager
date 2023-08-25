@@ -12,6 +12,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\DB;
+
 
 class B2CCntroller extends Controller
 {
@@ -19,20 +23,26 @@ class B2CCntroller extends Controller
     public function initiatePayment(Request $request)
     {
         try {
-            $this->validatePaymentRequest($request);
-    
+            
             $siteManager = $this->findSiteManager($request->siteManagerId);
             $project = $this->findProject($request->projectId);
             $worker = $this->findWorker($request->workerId);
-            $clockIn = $this->findClockIn($request->projectId, $request->workerId, $request->date);
+            $clockIn = $this->findClockIn($request->projectId, $request->workerId,$request->date);
             $wallet = $this->findSiteManagerWallet($request->siteManagerId);
 
             if ($clockIn->paymentStatus === 'paid') {
                 return response([
                     'message' => 'Duplicate Payment',
                 ], 404);
+
+            }elseif($clockIn->paymentStatus === 'pending processing'){
+                return response([
+                    'message' => 'Payment already initiated',
+                ], 404);
             }
 
+            
+            
             $wallet = $this->findSiteManagerWallet($request->siteManagerId);
 
             if ($wallet->availableBalance < $worker->payRate) {
@@ -44,17 +54,31 @@ class B2CCntroller extends Controller
           
 
             $workerDetails[] = ['name'=>$worker->name, 'phoneNumber' => $worker->phoneNumber, 'amount' => $worker->payRate];
-
-            
+            $uniqueId = Str::uuid()->toString();
             //initiate payment 
-            $result = $this->bulkPayment($workerDetails, $request->siteManagerId, $request->projectId, $request->workerId, $request->date);
+            $result = $this->bulkPayment($workerDetails, $request->siteManagerId, $request->projectId, $request->workerId, $request->date, $uniqueId);
 
             if(isset($result->ResponseCode) || isset($result->success)){
-                    $success = $result->success; //TMS
-                    //$success = $result->ResponseCode; //daraja
+                $success = $result->success; //TMS
+                //$success = $result->ResponseCode; //daraja
+                $payerTransactionID = $result->data->payerTransactionID;
+                $transactionID = $result->data->transactionID;
+                $message = $result->data->message;
+                DB::table('paymentTransactions')->insert([
+                    'payerTransactionID' => $payerTransactionID,
+                    'transactionID' => $transactionID,
+                    'message' => $message,
+                    'workerId' => $request->workerId,
+                    'projectId' => $request->projectId,
+                    'siteManagerId' => $request->siteManagerId,
+                    'workDate' => $request->date,
+                    'payRate' => $worker->payRate,
+                ]);
+                
             }else{
                 return response([
                     'message' => 'Payment request not sent',
+                    'unique'=> $uniqueId,
                     'result'=> $result,
             
                 ], 400);
@@ -111,7 +135,7 @@ class B2CCntroller extends Controller
     private function waitForPaymentResponse($projectId, $workerId, $date)
     {
         // Retry delays in seconds
-        $retryDelays = [0, 5, 10, 15, 20];
+        $retryDelays = [0, 2, 3];
 
         foreach ($retryDelays as $delay) {
             sleep($delay);
@@ -126,11 +150,9 @@ class B2CCntroller extends Controller
             } elseif ($clockIn->paymentStatus === 'failed') {
                 return 'failed';
             }
-
             // Payment still processing
             continue;
         }
-
         // Timed out
         return false;
     }
@@ -139,7 +161,7 @@ class B2CCntroller extends Controller
      * bulk payment TMS
      */
 
-    public function bulkPayment($workerDetails,$siteManagerId, $workerId, $projectId, $date){
+    public function bulkPayment($workerDetails,$siteManagerId, $workerId, $projectId, $date,$uniqueId){
 
         foreach ($workerDetails as $payment) {
             $phoneNumber = $payment['phoneNumber'];
@@ -154,7 +176,7 @@ class B2CCntroller extends Controller
 
         
 
-        $uniqueId = Str::uuid()->toString();
+        // $uniqueId = Str::uuid()->toString();
 
         $paymentDetails = [
             'customerName' => $name,
@@ -166,7 +188,8 @@ class B2CCntroller extends Controller
             'paymentType' => 'BusinessPayment',
             'serviceCode' => 'MPESAB2C',
             'currencyCode' => 'KES',
-            'callbackUrl' => env('APP_URL') . '/api/result' . "?workerId={$workerId}&projectId={$projectId}&date={$date}&siteManagerId={$siteManagerId}&payRate={$amount}",
+            'callbackUrl' => 'http://172.105.90.112/site-manager-backend/SiteManager/api/callback',
+            
         ];
 
         $url = "http://172.105.90.112:8080/paymentexpress/v1/payment/create";
@@ -286,8 +309,10 @@ class B2CCntroller extends Controller
 
 
 
+
+
         /**
-     * bulk payment TMS
+     * bulk payment daraja
      */
     // public function bulkPayment($paymentDetails, $siteManagerId, $workerId, $projectId, $date)
     // {
@@ -317,8 +342,8 @@ class B2CCntroller extends Controller
     //         "PartyA"=> 600983, 
     //         "PartyB"=>  "254708374149",
     //         "Remarks"=> "Salary payment",
-    //         "QueueTimeOutURL"=> env('APP_URL') . '/api/b2c/timeout',
-    //         "ResultURL"=> env('APP_URL') . '/api/result' . "?siteManagerId={$siteManagerId}&workerId={$workerId}&projectId={$projectId}&date={$date}",
+    //         "QueueTimeOutURL"=> 'https://webhook.site/ff7f5cfc-c681-4a74-8518-f9905ca2abfd',
+    //         "ResultURL"=> 'https://a8dc-102-215-76-93.ngrok-free.app/api/result',
     //         "Occassion"=>"Salary payment"
     //     );
 
