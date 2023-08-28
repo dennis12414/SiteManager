@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('paymentTransactions', function (Blueprint $table) {
-            $table->dropColumn(['resultCode', 'resultDesc', 'originatorConversationId','transactionId', 'conversationId', 'transactionAmount', 'transactionReceipt', 'receiverName', 'receiverPhoneNumber', 'transactionCompletedDateTime', 'utilityAccountAvailableFunds', 'workingAccountAvailableFunds', 'recipientRegistered', 'chargesPaidAvailableFunds', 'created_at', 'updated_at']);
+            $table->dropColumn(['resultCode', 'resultDesc', 'originatorConversationId', 'conversationId', 'transactionAmount', 'transactionReceipt', 'receiverName', 'receiverPhoneNumber', 'transactionCompletedDateTime', 'utilityAccountAvailableFunds', 'workingAccountAvailableFunds', 'recipientRegistered', 'chargesPaidAvailableFunds']);
             $table->string('workDate')->nullable();
             $table->integer('siteManagerId')->nullable();
             $table->integer('workerId')->nullable();
@@ -20,11 +20,9 @@ return new class extends Migration
             $table->decimal('payRate', 10, 2)->nullable();
             $table->string('partnerTransactionID')->nullable();
             $table->string('receiptNumber')->nullable();
-            $table->string('transactionID')->nullable();
             $table->string('payerTransactionID')->nullable();
             $table->string('statusCode')->nullable();
             $table->string('message')->nullable();
-            $table->timestamps();
         });
     }
     
@@ -34,8 +32,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::create('paymentTransactions', function (Blueprint $table) {
-
+        Schema::table('paymentTransactions', function (Blueprint $table) {
+            $table->dropColumn(['workDate', 'siteManagerId', 'workerId', 'projectId', 'payRate', 'partnerTransactionID', 'receiptNumber', 'transactionStatus']);
         });
     }
     
