@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('paymentTransactions', function (Blueprint $table) {
-            $table->dropColumn(['resultCode', 'resultDesc', 'originatorConversationId', 'conversationId', 'transactionAmount', 'transactionReceipt', 'receiverName', 'receiverPhoneNumber', 'transactionCompletedDateTime', 'utilityAccountAvailableFunds', 'workingAccountAvailableFunds', 'recipientRegistered', 'chargesPaidAvailableFunds', 'created_at', 'updated_at']);
+            $table->dropColumn(['resultCode', 'resultDesc', 'originatorConversationId','transactionId', 'conversationId', 'transactionAmount', 'transactionReceipt', 'receiverName', 'receiverPhoneNumber', 'transactionCompletedDateTime', 'utilityAccountAvailableFunds', 'workingAccountAvailableFunds', 'recipientRegistered', 'chargesPaidAvailableFunds', 'created_at', 'updated_at']);
             $table->string('workDate')->nullable();
             $table->integer('siteManagerId')->nullable();
             $table->integer('workerId')->nullable();

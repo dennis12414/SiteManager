@@ -26,12 +26,6 @@ class C2BController extends Controller
                 ], 404);
             }
 
-            //if amount is greater than 150 000 then return error
-            if($request->amount > 150000){
-                return response([
-                    'message' => 'Amount cannot be greater than 150,000',
-                ], 400);
-            }
 
             $phoneNumber = $request->phoneNumber;
             // if(substr($phoneNumber, 0, 1) == '0'){ 
