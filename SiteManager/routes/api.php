@@ -37,7 +37,7 @@ Route::post('confirmation', [C2BResponse::class, 'confirmation']);
 
 
 
-//Route::middleware('auth:api')->group(function () { 
+Route::middleware('auth:api')->group(function () { 
 
     Route::post('/logout', [AuthenticationController::class, 'logout']);
 
@@ -71,7 +71,7 @@ Route::post('confirmation', [C2BResponse::class, 'confirmation']);
     Route::post('/debitWallet', [C2BController::class, 'initiatePayment']);
     Route::get('/walletLoadingStatus/{partnerReferenceID}', [C2BController::class, 'getPaymentStatus']);
 
-//});
+});
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
