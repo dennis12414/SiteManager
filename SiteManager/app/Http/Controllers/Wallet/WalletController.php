@@ -23,6 +23,15 @@ class WalletController extends Controller
         }
 
         $wallet = SiteManagerWallet::where('phoneNumber', $phoneNumber)->first();
+        if(!$wallet){
+            $wallet = SiteManagerWallet::create([
+                'siteManagerId' => $siteManager->siteManagerId,
+                'phoneNumber' => $siteManager->phoneNumber,
+                'balance' => 0,
+                'availableBalance' => 0,
+                'heldBalance' =>0,
+            ]);
+        }
         $walletBalance =  $wallet-> balance;
 
         return response([

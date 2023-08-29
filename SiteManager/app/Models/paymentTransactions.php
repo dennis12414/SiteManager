@@ -10,4 +10,19 @@ class paymentTransactions extends Model
     use HasFactory;
     protected $table = 'paymentTransactions';
     protected $primaryKey = 'paymentTransactionId';
+
+    protected $fillable = [
+        'workDate',
+        'siteManagerId',
+        'workerId',
+        'projectId',
+        'payRate',
+        'partnerTransactionID',
+        'receiptNumber',
+        'payerTransactionID',
+        'statusCode',
+        'message',
+    ];
+
+
 }

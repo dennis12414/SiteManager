@@ -69,6 +69,7 @@ Route::post('confirmation', [C2BResponse::class, 'confirmation']);
     Route::get('/walletTransactions/{phoneNumber}', [WalletController::class, 'getWalletTransactions']);
 
     Route::post('/debitWallet', [C2BController::class, 'initiatePayment']);
+    Route::get('/walletLoadingStatus/{partnerReferenceID}', [C2BController::class, 'getPaymentStatus']);
 
 //});
 

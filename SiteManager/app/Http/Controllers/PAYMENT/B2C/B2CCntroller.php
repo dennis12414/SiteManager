@@ -127,6 +127,8 @@ class B2CCntroller extends Controller
         }catch (\Exception $e) {
             return response([
                 'message' => $e->getMessage(),
+                'response' => $result,
+                'id'=> $uniqueId,
             ], 404);
         }
 
@@ -182,7 +184,7 @@ class B2CCntroller extends Controller
             'customerName' => $name,
             'msisdn' => $phoneNumber,
             'accountNumber' => $phoneNumber,
-            'amount' => 10,
+            'amount' => $amount,
             'payerNarration' => 'Payment Completed Successfully',
             'partnerTransactionID' => $uniqueId,
             'paymentType' => 'BusinessPayment',
@@ -222,7 +224,9 @@ class B2CCntroller extends Controller
 
     private function findSiteManager($id)
     {
-        $siteManager = SiteManager::find($id);
+        $siteManager = SiteManager::where('siteManagerId',$id)
+        //->where('phoneVerified', true)
+        ->first();
 
         if (!$siteManager) {
           abort(404, 'Site Manager does not exist');
@@ -233,7 +237,7 @@ class B2CCntroller extends Controller
 
     private function findProject($id)
     {
-        $project = Project::find($id);
+        $project = Project::where('projectId',$id)->first();
 
         if (!$project) {
             abort(404, 'Project does not exist');
@@ -244,7 +248,7 @@ class B2CCntroller extends Controller
 
     private function findWorker($id)
     {
-        $worker = Worker::find($id);
+        $worker = Worker::where('workerId',$id)->first();
 
         if (!$worker) {
             abort(404, 'Worker does not exist');

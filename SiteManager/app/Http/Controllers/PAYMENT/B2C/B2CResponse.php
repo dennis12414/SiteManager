@@ -43,7 +43,7 @@ class B2CResponse extends Controller
             $clockIn = $this->getClockInDetails($paymentDetails->projectId, $paymentDetails->workerId, $paymentDetails->workDate);
 
             // Update wallet and clock in details based on payment status
-            if ($statusCode == 00) {
+            if ($statusCode === "00") {
                 $this->updateWalletAndClockInSuccess($wallet, $clockIn, $payRate);
                 $this->updatePaymentDetails($paymentDetails, $statusCode, $message, $providerNarration, $receiptNumber, $transactionID);
             }else{
@@ -101,10 +101,10 @@ class B2CResponse extends Controller
     private function getPaymentDetails($payerTransactionID){
         $paymentDetails = paymentTransactions::where('payerTransactionID', $payerTransactionID)->first();
         if (!$paymentDetails) {
-            abort(404, 'Payment details not found');
+            abort(404, 'Payment was not initiated');
         }
 
-        if ($paymentDetails->statusCode == '00') {
+        if ($paymentDetails->statusCode === '00') {
             abort(200, 'Payment already processed');
         }
         return $paymentDetails;

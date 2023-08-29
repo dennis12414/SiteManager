@@ -155,9 +155,12 @@ class AuthenticationController extends Controller
         $siteManager->password = Hash::make($request->password);
         $siteManager->save();
 
+        $token = $siteManager->createToken('siteManagerToken')->accessToken;
+
         return response([
             'message' => 'Password set successfully',
             'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber', 'dateRegistered']),
+            'token' => $token,
         ], 201);
 
     }

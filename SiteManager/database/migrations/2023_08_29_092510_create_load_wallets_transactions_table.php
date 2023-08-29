@@ -1,0 +1,38 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('loadWalletsTransactions', function (Blueprint $table) {
+            $table->id('loadTransactionId');
+            $table->string('partnerReferenceID')->nullable();
+            $table->string('transactionID')->nullable();
+            $table->string('message')->nullable();
+            $table->string('statusCode')->nullable();
+            $table->string('partnerTransactionID')->nullable();
+            $table->string('payerTransactionID')->nullable();
+            $table->string('receiptNumber')->nullable();
+            $table->string('siteManagerId')->nullable();
+            $table->string('phoneNumber')->nullable();
+            $table->decimal('transactionAmount', 10, 2);
+            $table->string('transactionStatus')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('loadWalletsTransactions');
+    }
+};
