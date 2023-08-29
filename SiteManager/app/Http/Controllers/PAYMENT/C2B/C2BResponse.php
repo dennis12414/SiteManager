@@ -61,7 +61,7 @@ class C2BResponse extends Controller
             Log::info($e->getMessage());
             return response([
                 'message' => $e->getMessage(),
-            ], 404);
+            ], 400);
         }
 
 
@@ -159,7 +159,7 @@ class C2BResponse extends Controller
     private function getPaymentDetails($partnerReferenceID){
         $paymentDetails = LoadWalletsTransaction::where('partnerReferenceID',$partnerReferenceID)->first();
         if(!$paymentDetails){
-            abort(404, 'Payment was not initiated (partnerReferenceID not found)');
+            abort(400, 'Payment was not initiated (partnerReferenceID not found)');
         }
         if ($paymentDetails->statusCode === '00') {
             abort(200, 'Payment already processed ');

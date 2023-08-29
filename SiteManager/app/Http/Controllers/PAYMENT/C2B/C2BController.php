@@ -123,7 +123,7 @@ class C2BController extends Controller
             "serviceCode"=>  "SITEMANAGER-COLLECTIONS",//Payment Express's service to be used
             "msisdn"=> $phoneNumber,//mobile wallet number to be charged in order to load site manager's account
             "accountNumber"=>  "TestAccount",//equivalent to a sitemanager unique identifier
-            "partnerCallbackUrl"=> "http://172.105.90.112/site-manager-backend/SiteManager/api/confirmation",//CallbackUrl where the notification will be sent to once the payment is completed
+            "partnerCallbackUrl"=> "https://7a1d-102-215-76-93.ngrok-free.app/api/confirmation",//CallbackUrl where the notification will be sent to once the payment is completed
             "amount"=>  $amount,//amount to be charged
             "partnerReferenceID"=>  $uniqueId,//third party's unique ID
             "narration"=>  "Making Test Payment",//reason for the payment  
