@@ -68,8 +68,6 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/walletBalance/{phoneNumber}', [WalletController::class, 'getWalletBalance']);
     Route::get('/walletTransactions/{phoneNumber}', [WalletController::class, 'getWalletTransactions']);
 
-    
-
 });
 
 Route::post('/debitWallet', [C2BController::class, 'initiatePayment']);

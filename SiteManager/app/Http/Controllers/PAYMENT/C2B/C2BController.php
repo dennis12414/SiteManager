@@ -19,7 +19,7 @@ class C2BController extends Controller
             $siteManager = $this->findSiteManager($request->phoneNumber);
 
             $uniqueId = Str::uuid()->toString();
-            $result = $this->STKPush($request->mpesaNumber, $request->amount,$uniqueId);
+            $result = $this->STKPush($request->msisdn, $request->amount,$uniqueId);
 
             if(isset($result->success)){
                 if($result->success == true){
