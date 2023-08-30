@@ -162,7 +162,6 @@ class AuthenticationController extends Controller
             'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber', 'dateRegistered']),
             'token' => $token,
         ], 201);
-
     }
 
     public function login(Request $request){

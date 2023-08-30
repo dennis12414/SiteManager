@@ -60,7 +60,7 @@ class B2CResponse extends Controller
             Log::error($e->getMessage());
             return response([
                 'message' => $e->getMessage(),
-            ], 404);
+            ], 400);
         }
     }
 
@@ -101,7 +101,7 @@ class B2CResponse extends Controller
     private function getPaymentDetails($payerTransactionID){
         $paymentDetails = paymentTransactions::where('payerTransactionID', $payerTransactionID)->first();
         if (!$paymentDetails) {
-            abort(404, 'Payment was not initiated');
+            abort(400, 'Payment was not initiated');
         }
 
         if ($paymentDetails->statusCode === '00') {
@@ -116,7 +116,7 @@ class B2CResponse extends Controller
             ->where('clockInTime', $workDate)
             ->first();
         if(!$clockIn){
-            abort(404, 'Clock in details not found');
+            abort(400, 'Clock in details not found');
         }
         return $clockIn;
     }
@@ -124,7 +124,7 @@ class B2CResponse extends Controller
     private function getWallet($siteManagerId){
         $wallet = SiteManagerWallet::where('siteManagerId', $siteManagerId)->first();
         if(!$wallet){
-            abort(404, 'Wallet not found');
+            abort(400, 'Wallet not found');
         }
         return $wallet;
     }
