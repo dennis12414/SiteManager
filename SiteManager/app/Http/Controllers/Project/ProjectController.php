@@ -10,30 +10,25 @@ use Illuminate\Http\Request;
 
 class ProjectController extends Controller
 {
-  
     /**
      * Store a newly created project.
      */
     public function store(Request $request)
     {
         $request->validate([
-            'siteManagerId' => 'required|numeric', 
+            'siteManagerId' => 'required|numeric',
             'projectName' => 'required|string',
             'projectDescription' => 'required|string',
             'startDate' => 'required|date',
             'endDate' => 'required|date',
         ]);
-        
-        //check if site manager exists
-        $siteManager = SiteManager::where('siteManagerId', $request->siteManagerId)->first();
+
+        $siteManager = SiteManager::find($request->siteManagerId);
         if (!$siteManager) {
-            return response([
-                'message' => 'Site Manager does not exist',
-            ], 404);
+            return response(['message' => 'Site Manager not found'], 404);
         }
 
-        //create project
-        $project = Project::create([
+        Project::create([
             'siteManagerId' => $request->siteManagerId,
             'projectName' => $request->projectName,
             'projectDescription' => $request->projectDescription,
@@ -41,49 +36,42 @@ class ProjectController extends Controller
             'endDate' => $request->endDate,
         ]);
 
-      
         return response([
-            'message' => 'Project created successfully',
+            'message' => 'Project created successfully'
         ], 201);
-    
     }
 
     /**
-     * Display the specified resource.
+     * Display a list of projects for a specific site manager.
      */
-    public function show(string $id)
+    public function show(string $siteManagerId)
     {
-        $projects = Project::where('siteManagerId', $id)->get();
-
+        $projects = Project::where('siteManagerId', $siteManagerId)->get();
 
         if ($projects->isEmpty()) {
-            return response([
-                'message' => 'No projects found',
-            ], 404);
+            return response(['message' => 'No projects found'], 404);
         }
 
+        $projectData = $projects->map(function ($project) {
+            return $project->only(['projectId', 'siteManagerId', 'projectName', 'projectDescription', 'startDate', 'endDate']);
+        });
+
         return response([
-            'message' => 'Retrieved successfully',
-            'project' => $projects->map(function($project){
-                return $project->only(['projectId','siteManagerId','projectName', 'projectDescription', 'startDate', 'endDate']);
-            })
+            'message' => 'Retrieved successfully', 
+            'projects' => $projectData
         ], 200);
-        
     }
 
-    public function details(string $id)
+    /**
+     * Display details of a specific project.
+     */
+    public function details(string $projectId)
     {
-        //show a project where projectId = $id
-        $project = Project::where('projectId', $id)->first();
-        if (!$project) {
-            return response([
-                'message' => 'Project does not exist',
-            ], 404);
-        }
+        $project = $this->findProject($projectId);
 
         return response([
             'message' => 'Retrieved successfully',
-            'project' => $project->only(['projectId','siteManagerId','projectName', 'projectDescription', 'startDate', 'endDate'])
+            'project' => $project->only(['projectId', 'siteManagerId', 'projectName', 'projectDescription', 'startDate', 'endDate'])
         ], 200);
     }
 
@@ -92,35 +80,25 @@ class ProjectController extends Controller
      */
     public function update(Request $request, string $projectId)
     {
-        $request->validate([ 
+        $request->validate([
             'projectName' => 'string',
             'projectDescription' => 'string',
             'startDate' => 'date',
             'endDate' => 'date',
         ]);
-        
-        //check if site manager exists
-        $project = Project::where('projectId', $request->projectId)->first();
-        if (!$project) {
-            return response([
-                'message' => 'Project does not exist',
-            ], 404);
-        }
 
-        //update project
-        $project = Project::where('projectId', $projectId)->update([
+        $project = $this->findProject($projectId);
+
+        $project->update([
             'projectName' => $request->projectName,
             'projectDescription' => $request->projectDescription,
             'startDate' => $request->startDate,
             'endDate' => $request->endDate,
         ]);
 
-      
         return response([
-            'message' => 'Project updated successfully',
+            'message' => 'Project updated successfully'
         ], 201);
-        
-        
     }
 
     /**
@@ -128,21 +106,27 @@ class ProjectController extends Controller
      */
     public function archive(string $projectId)
     {
-        $project =  Project::where('projectId', $projectId)
-                            ->first();
-
-        if (!$project) {
-            return response([
-                'message' => 'Project does not exist',
-            ], 404);
-        }
-
+        $project = $this->findProject($projectId);
         $project->delete();
 
         return response([
-            'message' => 'Project archived successfully',
+            'message' => 'Project archived successfully'
         ], 200);
+    }
 
-        
+    /**
+     * Find a project by its projectId.
+     */
+    private function findProject($projectId)
+    {
+        $project = Project::find($projectId);
+
+        if (!$project) {
+            return response([
+                'message' => 'Project does not exist'
+            ], 404);
+        }
+
+        return $project;
     }
 }

@@ -58,7 +58,7 @@ class C2BController extends Controller
       {
             $request->validate([
                 'phoneNumber' => 'required|numeric',
-                'mpesaNumber' => 'required|numeric',
+                'msisdn' => 'required|numeric',
                 'amount' => 'required|numeric'
             ]);
 
@@ -127,6 +127,7 @@ class C2BController extends Controller
             "amount"=>  $amount,//amount to be charged
             "partnerReferenceID"=>  $uniqueId,//third party's unique ID
             "narration"=>  "Making Test Payment",//reason for the payment  
+
         ];
 
         $url = "http://172.105.90.112:8080/paymentexpress/v1/paymentrequest/initiate";

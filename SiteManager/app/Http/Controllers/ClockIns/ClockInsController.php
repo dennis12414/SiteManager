@@ -11,45 +11,37 @@ class ClockInsController extends Controller
 {
 
     
-   public function clockIn(Request $request){
-   
-    $request->validate([
-        'siteManagerId' => 'required|numeric', 
-        'projectId' => 'required|numeric',
-        'workerId'=> 'required|numeric',
-        'clockInTime' => 'required|date',
-    ]);
+    public function clockIn(Request $request)
+    {
+        $request->validate([
+            'siteManagerId' => 'required|numeric',
+            'projectId' => 'required|numeric',
+            'workerId' => 'required|numeric',
+            'clockInTime' => 'required|date',
+        ]);
 
-    //check if worker is already clocked in
-    $clockIn = ClockIns::where('workerId', $request->workerId)
-                ->where('projectId', $request->projectId)
-                ->where('clockInTime', $request->clockInTime)
-                ->first();
+        $existingClockIn = ClockIns::where('workerId', $request->workerId)
+            ->where('projectId', $request->projectId)
+            ->where('clockInTime', $request->clockInTime)
+            ->first();
 
-    if ($clockIn) {
+        if ($existingClockIn) {
+            return response(['message' => 'Worker already clocked in'], 409);
+        }
+
+        $date = date('Y-m-d', strtotime($request->clockInTime));
+        ClockIns::create([
+            'siteManagerId' => $request->siteManagerId,
+            'projectId' => $request->projectId,
+            'workerId' => $request->workerId,
+            'clockInTime' => $request->clockInTime,
+            'date' => $date,
+        ]);
+
         return response([
-            'message' => 'Worker already clocked in',
-        ], 409); 
+            'message' => 'Clocked in successfully'
+        ], 201);
     }
-
-
-    $date = date('Y-m-d', strtotime($request->clockInTime));
-    $clockIn = ClockIns::create([
-        'siteManagerId' => $request->siteManagerId,
-        'projectId' => $request->projectId,
-        'workerId' => $request->workerId,
-        'clockInTime' => $request->clockInTime,
-        'date' => $date,
-    ]);
-
-   
-    return response([
-        'message' => 'Clocked in successfully',
-    ], 201); 
-
-
-    
-   }
 
    public function clockedInWorkers(Request $request){
     $request->validate([
@@ -66,10 +58,6 @@ class ClockInsController extends Controller
     ->whereBetween('date', [$request->startDate, $request->endDate])
     ->get();
     
-
-
-
-
 
     //get worker details from worker table
     foreach($clockIns as $clockIn){
@@ -152,34 +140,12 @@ class ClockInsController extends Controller
             'clockIns' => $clockIns,
         ], 200);
 
+}
+
 
 }
-        // $transaction = $mpesaResponse['Body']['stkCallback']['CallbackMetadata']['Item'];
-        // $amount = $transaction[0]['Value'];
-        // $mpesaReceiptNumber = $transaction[1]['Value'];
-        // $transactionDate = $transaction[3]['Value'];
-        // $phoneNumber = $transaction[4]['Value'];
-        // $merchantRequestID = $transaction[5]['Value'];
-        // $checkoutRequestID = $transaction[6]['Value'];
-        // $resultCode = $transaction[7]['Value'];
-        // $resultDesc = $transaction[8]['Value'];
 
-        // $mpesaResponse = [
-        //     'amount' => $amount,
-        //     'mpesaReceiptNumber' => $mpesaReceiptNumber,
-        //     'transactionDate' => $transactionDate,
-        //     'phoneNumber' => $phoneNumber,
-        //     'merchantRequestID' => $merchantRequestID,
-        //     'checkoutRequestID' => $checkoutRequestID,
-        //     'resultCode' => $resultCode,
-        //     'resultDesc' => $resultDesc,
-        // ];
 
-        // return response([
-        //     'message' => 'Mpesa response received',
-        //     'mpesaResponse' => $mpesaResponse,
-        // ], 200);
 
-}
    
 

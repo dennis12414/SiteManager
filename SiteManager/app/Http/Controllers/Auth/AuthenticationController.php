@@ -22,19 +22,18 @@ class AuthenticationController extends Controller
             'phoneNumber' => 'required|numeric',
         ]);
 
+        //TODO: add to env file
         $dummyPhoneNumber = "0712345678";
         $dummyEmail = "testemail@gmail.com";
 
+        //handle dummy info
         if($request->phoneNumber == $dummyPhoneNumber && $request->email == $dummyEmail){
     
             $siteManager = SiteManager::where('email', $request->email)
                  ->orWhere('phoneNumber', $request->phoneNumber)
                  ->first();
-            if ($siteManager) {
-                return response([
-                    'message' => 'Dummy OTP 123456',
-                ], 201);
-            }else{
+
+            if (!$siteManager){
                 //create
                 $siteManager = SiteManager::create([
                     'name' => $request->name,
@@ -42,12 +41,10 @@ class AuthenticationController extends Controller
                     'phoneNumber' => $request->phoneNumber,
                     'phoneVerified'=> true,
                 ]);
-                return response([
-                    'message' => 'Dummy OTP 123456',
-                    //'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber', 'phoneVerified']),
-                ], 201);
-              
             }
+            return response([
+                'message' => 'Dummy OTP 123456',
+            ], 201); 
           
         }
      
@@ -77,7 +74,7 @@ class AuthenticationController extends Controller
 
         return response([
             'message' => 'An OTP has been sent to ' . $phoneNumber . '',
-             //'otp' => $otp,
+             
         ], 201);
         
 
@@ -88,7 +85,8 @@ class AuthenticationController extends Controller
             'phoneNumber' => 'required|numeric',
             'otp' => 'required|digits:6',
         ]);
-        
+
+        //TODO: add to env
         $dummyPhoneNumber = "0712345678";
         $dummyOTP = 123456;
 
@@ -117,7 +115,7 @@ class AuthenticationController extends Controller
         $siteManager->otp = null;
         $siteManager->save();
 
-        $wallet = SiteManagerWallet::create([
+        $wallet = SiteManagerWallet::create([ 
             'siteManagerId' => $siteManager->siteManagerId,
             'phoneNumber' => $request->phoneNumber,
         ]);
@@ -131,6 +129,7 @@ class AuthenticationController extends Controller
         ], 201);
 
     }
+
 
     public function setPassword(Request $request){
         $request->validate([
@@ -149,6 +148,7 @@ class AuthenticationController extends Controller
         }
 
         //east africa time zone
+        //TODO: configure it in env
         date_default_timezone_set('Africa/Nairobi');
         $time = date('Y-m-d H:i:s');
         //set password
@@ -194,76 +194,16 @@ class AuthenticationController extends Controller
             'valid' => true,
             'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
             'token' => $token
-        ], 201);
-
-        // $data  = $request->only(['phoneNumber', 'password']);
-
-        // if(!Auth::attempt($data)){
-        //     return response([
-        //         'message' => 'Unauthorized'
-        //     ], 401);
-        // }else{
-        //     $siteManager = Auth::user();
-        //     $token = $siteManager->createToken('siteManagerToken')->accessToken;
-
-        //     return response([
-        //         'valid' => true,
-        //         //'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
-        //         //'token' => $token
-        //     ], 201);
-        // }
-
-        // Auth::attempt(['phoneNumber' => $request->phoneNumber, 'password' => $request->password]);
-
-        // if(!Auth::check()){
-        //     return response([
-        //         'message' => 'Invalid credentials'
-        //     ], 401);
-        // }
-
-        // $siteManager = Auth::user();
-
-        // $token = $siteManager->createToken('siteManagerToken')->accessToken;
-
-        // return response([
-        //     'valid' => true,
-        //     'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
-        //     'token' => $token
-        // ], 201);
-
-
-
-        // $request->validate([
-        //     'phoneNumber' => 'required|numeric',
-        //     'password' => 'required|string|min:8'
-        // ]);
-
-        // $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)
-        //                 ->where('phoneVerified', true)
-        //                 ->first();
-
-        // if(!$siteManager || !Hash::check($request->password, $siteManager->password)){
-        //     return response([
-        //         'message' => 'Invalid credentials'
-        //     ], 401);
-        // }
-
-        // $token = $siteManager->createToken('siteManagerToken')->accessToken;
-
-        // return response([
-        //     'valid' => true,
-        //     'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
-        //     'token' => $token
-        // ], 201);
-        
-
+        ], 201);        
     }
 
 
     public function sendSMS($phoneNumber, $message){
+        //TODO: add to env
         $url = "http://172.105.90.112:8080/notification-api/v1/notification/create";
+        //TODO: log payload
         $data = array(
-            'notificationCode' => 'PMANAGER-SMS',
+            'notificationCode' => 'PMANAGER-SMS',//TODO: add to env
             'clientID' => 1,
             'message' => $message,
             'subject' => 'SMS Test',
@@ -273,16 +213,21 @@ class AuthenticationController extends Controller
             'type' => 'text',
         );
 
-        $payload = json_encode($data); 
 
-        $ch = curl_init($url); 
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $result = curl_exec($ch);
+        $payload = json_encode($data); //encode data to json
+
+        $ch = curl_init($url); //initialize curl and set url
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload); //sets the request method to POST
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json')); //set the content type header to 'application/json
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);//set option to return the response as a string
+        $result = curl_exec($ch); //executes the cURL session
         curl_close($ch);
+        //Exceptions : 
+        //Read timeout
+        // Connect Timeout
+        // Timeout Configuration
 
-        return $result;
+        return $result; //TODO: log the response
 
     }
 

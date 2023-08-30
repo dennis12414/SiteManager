@@ -18,9 +18,7 @@ class SiteManagerController extends Controller
         //read env file to know if it is local or production
         $env = env('APP_ENV');
         $url = env('APP_URL');
-
-
-
+        
         return response([
             'message' => 'Retrieved successfully',
             'env' => $env,
@@ -31,26 +29,6 @@ class SiteManagerController extends Controller
         ], 200);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-
-        
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
         $siteManager = SiteManager::where('siteManagerId', $id)->first();
@@ -67,10 +45,4 @@ class SiteManagerController extends Controller
         
     }
 
-    public function resul(){
-        Log::info("im here");
-        return response([
-            'message'=>'hello',
-        ],200);
-    }
 }
