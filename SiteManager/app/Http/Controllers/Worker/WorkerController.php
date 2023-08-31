@@ -104,10 +104,9 @@ class WorkerController extends Controller
 
         if ($searchQuery) {
             $workers = $workers->filter(function ($worker) use ($searchQuery) {
-                //check if name or email contains the searchquery
                 return strpos(strtolower($worker->name), strtolower($searchQuery)) !== false ||
                     strpos(strtolower($worker->phoneNumber), strtolower($searchQuery)) !== false;
-            })->values(); //reset the keys of the collection to start from zero
+            })->values(); 
         }
 
         if ($workers->isEmpty()) {

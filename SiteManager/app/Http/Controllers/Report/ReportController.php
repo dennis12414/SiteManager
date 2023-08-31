@@ -141,7 +141,6 @@ class ReportController extends Controller
 
             ], 200); 
         
-
     }
 
     //individual worker report

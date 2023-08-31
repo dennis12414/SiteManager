@@ -43,47 +43,6 @@ class ClockInsController extends Controller
         ], 201);
     }
 
-   public function clockedInWorkers(Request $request){
-    $request->validate([
-        'siteManagerId' => 'required|numeric', 
-        'projectId' => 'required|numeric',
-        'startDate' => 'date',
-        'endDate' => 'date',
-        
-    ]);
-
- 
-    $clockIns = ClockIns::where('siteManagerId', $request->siteManagerId)
-    ->where('projectId', $request->projectId)
-    ->whereBetween('date', [$request->startDate, $request->endDate])
-    ->get();
-    
-
-    //get worker details from worker table
-    foreach($clockIns as $clockIn){
-        $worker = Worker::where('workerId', $clockIn->workerId)->first();
-        $clockIn->name = $worker->name;
-        $clockIn->phoneNumber = $worker->phoneNumber;
-        $clockIn->payRate = $worker->payRate;
-    }
-
-   
-
-    if ($clockIns->isEmpty()) {
-        return response([
-            'message' => 'No workers clocked in',
-        ], 404); 
-    }
-
-    
-
-    return response([
-        'message' => 'Workers clocked in',
-        'clockIns' => $clockIns,
-    ], 200);
-
-   }  
-   
    public function clockedInWorker(string $siteManagerId, string $projectId, string $startDate = null, string $endDate = null, string $searchQuery = null)
    {
         $startDate = request('startDate');
@@ -141,6 +100,48 @@ class ClockInsController extends Controller
         ], 200);
 
 }
+
+public function clockedInWorkers(Request $request){
+    
+    $request->validate([
+        'siteManagerId' => 'required|numeric', 
+        'projectId' => 'required|numeric',
+        'startDate' => 'date',
+        'endDate' => 'date',
+        
+    ]);
+
+ 
+    $clockIns = ClockIns::where('siteManagerId', $request->siteManagerId)
+    ->where('projectId', $request->projectId)
+    ->whereBetween('date', [$request->startDate, $request->endDate])
+    ->get();
+    
+
+    //get worker details from worker table
+    foreach($clockIns as $clockIn){
+        $worker = Worker::where('workerId', $clockIn->workerId)->first();
+        $clockIn->name = $worker->name;
+        $clockIn->phoneNumber = $worker->phoneNumber;
+        $clockIn->payRate = $worker->payRate;
+    }
+
+   
+
+    if ($clockIns->isEmpty()) {
+        return response([
+            'message' => 'No workers clocked in',
+        ], 404); 
+    }
+
+    
+
+    return response([
+        'message' => 'Workers clocked in',
+        'clockIns' => $clockIns,
+    ], 200);
+
+   }  
 
 
 }

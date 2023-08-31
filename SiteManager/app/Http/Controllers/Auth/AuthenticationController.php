@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use App\Models\SiteManager;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Config;
 
 
 
@@ -23,8 +25,8 @@ class AuthenticationController extends Controller
         ]);
 
         //TODO: add to env file
-        $dummyPhoneNumber = "0712345678";
-        $dummyEmail = "testemail@gmail.com";
+        $dummyPhoneNumber = config('settings.dummyPhoneNumber');
+        $dummyEmail = config('settings.dummyEmail');
 
         //handle dummy info
         if($request->phoneNumber == $dummyPhoneNumber && $request->email == $dummyEmail){
@@ -87,8 +89,8 @@ class AuthenticationController extends Controller
         ]);
 
         //TODO: add to env
-        $dummyPhoneNumber = "0712345678";
-        $dummyOTP = 123456;
+        $dummyPhoneNumber = config('settings.dummyPhoneNumber');
+        $dummyOTP = config('settings.dummyOTP');
 
         //if dummy phone number and dummy otp
         if($request->phoneNumber == $dummyPhoneNumber && $request->otp == $dummyOTP){
@@ -199,13 +201,13 @@ class AuthenticationController extends Controller
 
     public function sendSMS($phoneNumber, $message){
         //TODO: add to env
-        $url = "http://172.105.90.112:8080/notification-api/v1/notification/create";
+        $url = config('settings.smsUrl'); 
         //TODO: log payload
         $data = array(
-            'notificationCode' => 'PMANAGER-SMS',//TODO: add to env
+            'notificationCode' =>config('settings.notificationCode') ,
             'clientID' => 1,
             'message' => $message,
-            'subject' => 'SMS Test',
+            'subject' => config('settings.subject'),
             'recepient' => $phoneNumber,
             'cCrecepients' => '',
             'bCCrecepients' => '',
@@ -215,17 +217,28 @@ class AuthenticationController extends Controller
 
         $payload = json_encode($data); //encode data to json
 
-        $ch = curl_init($url); //initialize curl and set url
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload); //sets the request method to POST
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json')); //set the content type header to 'application/json
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);//set option to return the response as a string
-        $result = curl_exec($ch); //executes the cURL session
-        curl_close($ch);
-        //Exceptions : 
-        //Read timeout
-        // Connect Timeout
-        // Timeout Configuration
+        $ch = curl_init($url); 
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload); 
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json')); 
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);//set maximum time to wait for a connection
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);//set maximum time to wait for a response
+        
+        try {
+            $result = curl_exec($ch); //executes the cURL session
+            if (curl_errno($ch)) {
+                throw new \Exception(curl_error($ch));
+            }
+        } catch (\Exception $e) {
+            // handle exception
+            Log::error($e->getMessage());
+            return "Error: " . $e->getMessage();
+        } finally {
 
+            curl_close($ch);
+        }
+
+        Log::info($result);
         return $result; //TODO: log the response
 
     }

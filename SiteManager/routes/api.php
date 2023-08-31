@@ -66,12 +66,13 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('/siteManager/archive/{siteManagerId}',[SiteManagerController::class , 'destroy']);//create worker
 
     Route::get('/walletBalance/{phoneNumber}', [WalletController::class, 'getWalletBalance']);
-    Route::get('/walletTransactions/{phoneNumber}', [WalletController::class, 'getWalletTransactions']);
+    
 
 });
 
 Route::post('/debitWallet', [C2BController::class, 'initiatePayment']);
 Route::get('/walletLoadingStatus/{partnerReferenceID}', [C2BController::class, 'getPaymentStatus']);
+Route::get('/transactionHistory/{phoneNumber}', [WalletController::class, 'getTransactionHistory']);
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();

@@ -5,8 +5,12 @@ namespace App\Http\Controllers\Wallet;
 use App\Http\Controllers\Controller;
 use App\Models\SiteManager;
 use App\Models\SiteManagerWallet;
+use App\Models\LoadWalletsTransaction;
+use App\Models\paymentTransactions;
 use App\Models\MpesaTransaction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Models\Worker;
 
 class WalletController extends Controller
 {
@@ -31,6 +35,11 @@ class WalletController extends Controller
                 'availableBalance' => 0,
                 'heldBalance' =>0,
             ]);
+
+            return response([
+                'message' => 'Wallet balance',
+                'balance' => 0
+            ], 200);
         }
         $walletBalance =  $wallet-> balance;
 
@@ -40,53 +49,94 @@ class WalletController extends Controller
         ], 200);
   }
 
-//   public function getWalletTransactions(string $phoneNumber, string $startDate = null, string $endDate = null){
-        
-//         $startDate = request('startDate');
-//         $endDate = request('endDate');
+   public function getTransactionHistory(string $phoneNumber, string $startDate = null,string $endDate = null,string $paymentType = null)
+    {
+        $startDate = request('startDate');
+        $endDate = request('endDate');
+        $paymentType = request('paymentType');
 
-//         $siteManager = SiteManager::where('phoneNumber', $phoneNumber)
-//                         ->where('phoneVerified', true)
-//                         ->first();
-//         if(!$siteManager){
-//             return response([
-//                 'phoneNumber' => $phoneNumber,
-//                 'message' => 'Site manager does not exist',
-//             ], 404);
-//         }
 
-//         if(substr($phoneNumber, 0, 1) == '0'){ 
-//             $phoneNumber = '254' . substr($phoneNumber, 1);
-//         }
-//         $phoneNumber = str_replace('+', '', $phoneNumber);
-//         $phoneNumber = str_replace(' ', '', $phoneNumber);
-       
 
-//         if($startDate && $endDate){
-//             $startDate = $startDate . ' 00:00:00';
-//             $endDate = $endDate . ' 23:59:59';
-//             $transactions = MpesaTransaction::where('phoneNumber', $phoneNumber)
-//                             ->whereBetween('transactionDate', [$startDate, $endDate])
-//                             ->orderBy('transactionDate', 'desc')
-//                             ->get();
-//         }
-//         elseif($startDate){
-            
-//             $transactions = MpesaTransaction::where('phoneNumber', $phoneNumber)
-//                             ->whereBetween('transactionDate', [$startDate . ' 00:00:00', $startDate . ' 23:59:59'])
-//                             ->orderBy('transactionDate', 'desc')
-//                             ->get();
-//         }
-//         else{
-            
-//             $transactions = MpesaTransaction::where('phoneNumber', $phoneNumber)
-//                             ->orderBy('transactionDate', 'desc')
-//                             ->get();     
-//         }
+        $siteManager = SiteManager::where('phoneNumber', $phoneNumber)
+                    ->where('phoneVerified', true)
+                    ->first();
 
-//         return response([
-//             'message' => 'Transactions',
-//             'transactions' => $transactions
-//         ], 200);
-//   }
+        if(!$siteManager){
+            return response([
+                'message' => 'Site manager does not exist',
+            ], 404);
+        }
+
+        if ($paymentType === 'load') {
+            $query = LoadWalletsTransaction::select('loadTransactionId', 'siteManagerId', 'transactionAmount', 'transactionStatus','message', 'created_at as date')
+                ->where('siteManagerId', $siteManager->siteManagerId)
+                ->orderBy('date', 'desc');
+
+         } elseif ($paymentType === 'pay') {
+            $query = PaymentTransactions::select('paymentTransactionId','siteManagerId', 'workerId', 'projectId', 'payRate', 'statusCode','message', 'workDate','created_at as date')
+                ->where('siteManagerId', $siteManager->siteManagerId)
+                ->orderBy('date', 'desc');
+
+
+                
+        } else {
+            $loadTransactions = LoadWalletsTransaction::select('loadTransactionId','siteManagerId', 'transactionAmount', 'transactionStatus','message', 'created_at as date')
+                    ->where('siteManagerId', $siteManager->siteManagerId)
+                    ->when($startDate, function ($query) use ($startDate) {
+                        return $query->where('date', $startDate);
+                    })
+                    ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
+                        return $query->whereBetween('date', [$startDate, $endDate]);
+                    })
+                    ->get();
+
+            $paymentTransactions = PaymentTransactions::select('paymentTransactionId','siteManagerId', 'workerId', 'projectId', 'payRate', 'statusCode','message', 'workDate', 'created_at as date')
+                    ->where('siteManagerId', $siteManager->siteManagerId)
+                    ->when($startDate, function ($query) use ($startDate) {
+                        return $query->where('date', $startDate);
+                    })
+                    ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
+                        return $query->whereBetween('date', [$startDate, $endDate]);
+                    })
+                    ->get();
+
+                foreach($paymentTransactions as $transaction){
+                    $worker = Worker::where('workerId', $transaction->workerId)->first();
+                    $transaction->workerName = $worker->name;
+            }
+
+            $transactions = $loadTransactions->concat($paymentTransactions)->sortByDesc('date');
+            return response([
+                'transactions'=> $transactions,
+            ],200);
+        }
+
+        if ($startDate) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+
+        if ($endDate) {
+            $query->whereDate('created_at', '<=', $endDate);
+        }
+
+        if($startDate && $endDate){
+            $startDate = $startDate . ' 00:00:00';
+            $endDate = $endDate . ' 23:59:59';
+            $query->whereBetween('date', [$startDate, $endDate]);
+        }
+
+        $transactions = $query->get();
+
+        if($paymentType === 'pay') {
+            foreach($transactions as $transaction){
+                $worker = Worker::where('workerId', $transaction->workerId)->first();
+                $transaction->workerName = $worker->name;
+            }
+        }
+
+        return response([
+            'transactions'=> $transactions,
+        ],200);
+    }
+
 }

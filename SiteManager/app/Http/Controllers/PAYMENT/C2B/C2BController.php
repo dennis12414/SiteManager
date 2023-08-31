@@ -9,6 +9,7 @@ use App\Models\LoadWalletsTransaction;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 
 class C2BController extends Controller
@@ -34,7 +35,7 @@ class C2BController extends Controller
                     return response([
                         'message' => 'Error occured',
                         'error' => $result,
-                    ], 500);    
+                    ], 400);    
                 }
 
             }
@@ -42,14 +43,14 @@ class C2BController extends Controller
             return response([
                 'message' => 'Error occured',
                 'error' => $result,
-            ], 500);
+            ], 400);
 
 
         }catch(\Exception $e){
             return response([
                 'message' => 'Error occured',
                 'error' => $e->getMessage()
-            ], 500);
+            ], 400);
 
         }
       }
@@ -62,6 +63,7 @@ class C2BController extends Controller
                 'amount' => 'required|numeric'
             ]);
 
+            //TODO
             if($request->amount < 1 || $request->amount >= 499999){
                 abort(400, 'Amount above or below limit');
             }
@@ -141,25 +143,29 @@ class C2BController extends Controller
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_POST, true);
         curl_setopt($curl, CURLOPT_POSTFIELDS,json_encode($paymentDetails));
-        $response = curl_exec($curl);
-        curl_close($curl);
-        return json_decode($response);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 10);
 
+        
 
+        try{
+            $response = curl_exec($curl);
+            Log::info($response);
+            $response = json_decode($response);
+           
 
-        // $wallet = SiteManagerWallet::where('phoneNumber', $phoneNumber)->first();
-        // if(!$wallet){
-        //     $wallet = SiteManagerWallet::create([
-        //         'siteManagerId' => $siteManager->siteManagerId,
-        //         'phoneNumber' => $phoneNumber,
-        //         'balance' => $amount,
-        //         'availableBalance' => $amount,
-        //     ]);
-        // }else{
-        //     $wallet->availableBalance  += $amount;
-        //     $wallet->balance += $amount;
-        //     $wallet->save();
-        // }
+            if (curl_errno($curl)) {
+                throw new \Exception(curl_error($curl));
+            }
+        }catch(\Exception $e){
+            Log::error($e->getMessage());
+            return "Error: " . $e->getMessage();
+        }finally{
+            curl_close($curl);
+        }
+       
+        return $response;
+
       }
 
       private function getToken()
@@ -167,9 +173,9 @@ class C2BController extends Controller
           $token = Cache::get('payment_token');
   
           if (!$token) {
-              $url = "http://172.105.90.112:8080/paymentexpress/v1/client/users/authenticate";
-              $username = "ikoaqua-mpesa-user";
-              $password = "F5Hm5CNDg0kG";
+             $url = config('settings.authUrl');
+             $username = config('settings.username');
+             $password = config('settings.password');
   
               $response = Http::withHeaders([
                   'Content-Type' => 'application/json',

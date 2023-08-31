@@ -23,7 +23,8 @@ class B2CCntroller extends Controller
     public function initiatePayment(Request $request)
     {
         try {
-            
+
+            $this->validatePaymentRequest($request);
             $siteManager = $this->findSiteManager($request->siteManagerId);
             $project = $this->findProject($request->projectId);
             $worker = $this->findWorker($request->workerId);
@@ -47,7 +48,7 @@ class B2CCntroller extends Controller
 
             if ($wallet->availableBalance < $worker->payRate) {
                 return response([
-                    'message' => 'Insufficient funds',
+                    'message' => 'Insufficient funds in your wallet',
                 ], 404);
             }
             
@@ -55,128 +56,96 @@ class B2CCntroller extends Controller
 
             $workerDetails[] = ['name'=>$worker->name, 'phoneNumber' => $worker->phoneNumber, 'amount' => $worker->payRate];
             $uniqueId = Str::uuid()->toString();
-            //initiate payment 
-            $result = $this->bulkPayment($workerDetails, $request->siteManagerId, $request->projectId, $request->workerId, $request->date, $uniqueId);
 
-            if(isset($result->ResponseCode) || isset($result->success)){
-                $success = $result->success; //TMS
-                //$success = $result->ResponseCode; //daraja
-                $payerTransactionID = $result->data->payerTransactionID;
-                $transactionID = $result->data->transactionID;
-                $message = $result->data->message;
-                DB::table('paymentTransactions')->insert([
-                    'payerTransactionID' => $payerTransactionID,
-                    'transactionID' => $transactionID,
-                    'message' => $message,
-                    'workerId' => $request->workerId,
-                    'projectId' => $request->projectId,
-                    'siteManagerId' => $request->siteManagerId,
-                    'workDate' => $request->date,
-                    'payRate' => $worker->payRate,
-                ]);
-                
+            //initiate payment 
+            $result = $this->bulkPayment($workerDetails, $uniqueId);
+
+            //TODO: use status code
+            if(isset($result->success)){
+                $success = $result->success; 
+
+                if($success === true ){
+                    $payerTransactionID = $result->data->payerTransactionID;
+                    $transactionID = $result->data->transactionID;
+                    $message = $result->data->message;
+
+                    DB::table('paymentTransactions')->insert([
+                        'statusCode' => $result->statusCode,
+                        'payerTransactionID' => $payerTransactionID,
+                        'transactionID' => $transactionID,
+                        'message' => $message,
+                        'workerId' => $request->workerId,
+                        'projectId' => $request->projectId,
+                        'siteManagerId' => $request->siteManagerId,
+                        'workDate' => $request->date,
+                        'payRate' => $worker->payRate,
+                    ]);
+
+                    //update held balance and available balance 
+                    $wallet->availableBalance -= $worker->payRate;
+                    $wallet->heldBalance += $worker->payRate;
+                    $wallet->save();
+    
+                    //update payment status as processing
+                    $clockIn->paymentStatus = 'pending processing';
+                    $clockIn->save();
+
+                    return response([
+                        'message' => $message,
+                        'payerTransactionID'=> $payerTransactionID, 
+                    ], 200);
+    
+                }else{
+                    $message = $result->message;
+                    DB::table('paymentTransactions')->insert([
+                        'statusCode' => '400',
+                        'payerTransactionID' => $uniqueId,
+                        'message' => $message,
+                        'workerId' => $request->workerId,
+                        'projectId' => $request->projectId,
+                        'siteManagerId' => $request->siteManagerId,
+                        'workDate' => $request->date,
+                        'payRate' => $worker->payRate,
+                    ]);
+
+                    return response([
+                        'message' => $message,
+                        'payerTransactionID'=> $uniqueId,
+                        'result'=> $result,      
+                        'success' => $success,             
+                    ], 400);
+                }    
             }else{
                 return response([
                     'message' => 'Payment request not sent',
-                    'unique'=> $uniqueId,
-                    'result'=> $result,
-            
+                    'payerTransactionID'=> $uniqueId,
                 ], 400);
             }
             
-            if($success === false ){
-                return response([
-                    'message' => 'Payment Validation Failed',
-                    'result'=> $result,
             
-                ], 400);
+        //TODO: waitForPaymentResponse not needed
 
-            }else{
-                //update held balance and available balance 
-                $wallet->availableBalance -= $worker->payRate;
-                $wallet->heldBalance += $worker->payRate;
-                $wallet->save();
-
-                //update payment status as processing
-                $clockIn->paymentStatus = 'pending processing';
-                $clockIn->save();
-            }
-
-            $paymentResponse = $this->waitForPaymentResponse($request->projectId, $request->workerId, $request->date);
-
-            if ($paymentResponse === 'paid') {
-                return response([
-                    'message' => 'Payment successfull',
-                ], 200);
-            } elseif($paymentResponse === 'failed') {
-                return response([
-                    'message' => 'Payment failed',
-                ], 404);
-
-            }else{
-                return response([
-                    'message' => 'Payment timed out, (no callback received)',
-                    'result' => $result,
-                ], 404);
-
-            }
-
-
-    
-            // rest of the code here
+        // rest of the code here
         }catch (\Exception $e) {
+            Log::error($e->getMessage());
             return response([
                 'message' => $e->getMessage(),
-                'response' => $result,
-                'id'=> $uniqueId,
-            ], 404);
+            ], 400);
         }
 
-    }
-
-    private function waitForPaymentResponse($projectId, $workerId, $date)
-    {
-        // Retry delays in seconds
-        $retryDelays = [0, 2, 3];
-
-        foreach ($retryDelays as $delay) {
-            sleep($delay);
-
-            $clockIn = ClockIns::where('projectId', $projectId)
-                                ->where('workerId', $workerId)
-                                ->where('clockInTime', $date)
-                                ->first();
-
-            if ($clockIn->paymentStatus === 'paid') {
-                return 'paid';
-            } elseif ($clockIn->paymentStatus === 'failed') {
-                return 'failed';
-            }
-            // Payment still processing
-            continue;
-        }
-        // Timed out
-        return false;
     }
 
     /**
      * bulk payment TMS
      */
 
-    public function bulkPayment($workerDetails,$siteManagerId, $workerId, $projectId, $date,$uniqueId){
+    public function bulkPayment($workerDetails, $uniqueId){
 
         foreach ($workerDetails as $payment) {
             $phoneNumber = $payment['phoneNumber'];
             $amount = $payment['amount'];
             $name = $payment['name'];
         }
-        if(substr($phoneNumber, 0, 1) == '0'){ 
-              $phoneNumber = '254' . substr($phoneNumber, 1);
-        }
-        $phoneNumber = str_replace('+', '', $phoneNumber);
-        $phoneNumber = str_replace(' ', '', $phoneNumber);
-
-        
 
         // $uniqueId = Str::uuid()->toString();
 
@@ -184,30 +153,50 @@ class B2CCntroller extends Controller
             'customerName' => $name,
             'msisdn' => $phoneNumber,
             'accountNumber' => $phoneNumber,
-            'amount' => $amount,
-            'payerNarration' => 'Payment Completed Successfully',
+            'amount' => 10,
+            'payerNarration' => config('settings.payerNarration'),
             'partnerTransactionID' => $uniqueId,
-            'paymentType' => 'BusinessPayment',
-            'serviceCode' => 'MPESAB2C',
-            'currencyCode' => 'KES',
-            'callbackUrl' => 'http://172.105.90.112/site-manager-backend/SiteManager/api/callback',
+            'paymentType' => config('settings.paymentType'),
+            'serviceCode' => config('settings.serviceCode'),
+            'currencyCode' => config('settings.currencyCode'),
+            'callbackUrl' =>  config('settings.callbackUrl') . '/api/callback',
             
         ];
 
-        $url = "http://172.105.90.112:8080/paymentexpress/v1/payment/create";
+        $url = config('settings.b2cUrl');
 
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_URL, $url);// set url to post to
         curl_setopt($curl, CURLOPT_HTTPHEADER, array(
             'Content-Type: application/json',
             'Authorization: Bearer '.$this->getToken()
         ));
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);// return the transfer as a string
+        curl_setopt($curl, CURLOPT_POST, true);// set post data to true
         curl_setopt($curl, CURLOPT_POSTFIELDS,json_encode($paymentDetails));
-        $response = curl_exec($curl);
-        curl_close($curl);
-        return json_decode($response);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 10);
+
+        
+
+        try{
+            $response = curl_exec($curl);
+            Log::info($response);
+            $response = json_decode($response);
+           
+
+            if (curl_errno($curl)) {
+                throw new \Exception(curl_error($curl));
+            }
+        }catch(\Exception $e){
+            Log::error($e->getMessage());
+            return "Error: " . $e->getMessage();
+        }finally{
+            curl_close($curl);
+        }
+       
+        return $response;
+        
     }
     
 
@@ -288,9 +277,9 @@ class B2CCntroller extends Controller
         $token = Cache::get('payment_token');
 
         if (!$token) {
-            $url = "http://172.105.90.112:8080/paymentexpress/v1/client/users/authenticate";
-            $username = "ikoaqua-mpesa-user";
-            $password = "F5Hm5CNDg0kG";
+            $url = config('settings.authUrl');
+            $username = config('settings.username');
+            $password = config('settings.password');
 
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
