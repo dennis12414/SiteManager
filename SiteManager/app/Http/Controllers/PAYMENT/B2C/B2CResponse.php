@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\SiteManagerWallet;
-use App\Models\paymentTransactions;
+use App\Models\Transactions;
 use App\Models\ClockIns;
 
 
@@ -44,11 +44,13 @@ class B2CResponse extends Controller
 
             // Update wallet and clock in details based on payment status
             if ($statusCode === "00") {
+                $transactionStatus = "Success";
                 $this->updateWalletAndClockInSuccess($wallet, $clockIn, $payRate);
-                $this->updatePaymentDetails($paymentDetails, $statusCode, $message, $providerNarration, $receiptNumber, $transactionID);
+                $this->updatePaymentDetails($paymentDetails, $statusCode, $message, $providerNarration, $receiptNumber, $transactionID, $transactionStatus);
             }else{
+                $transactionStatus = "Failed";
                 $this->updateWalletAndClockInFail($wallet, $clockIn, $payRate);
-                $this->updatePaymentDetails($paymentDetails, $statusCode, $message, $providerNarration, $receiptNumber, $transactionID);
+                $this->updatePaymentDetails($paymentDetails, $statusCode, $message, $providerNarration, $receiptNumber, $transactionID, $transactionStatus);
             }
 
             // Return success response
@@ -60,6 +62,7 @@ class B2CResponse extends Controller
             Log::error($e->getMessage());
             return response([
                 'message' => $e->getMessage(),
+                
             ], 400);
         }
     }
@@ -77,13 +80,14 @@ class B2CResponse extends Controller
         $clockIn->save();
     }
 
-    private function updatePaymentDetails($paymentDetails, $statusCode, $message, $providerNarration, $receiptNumber, $transactionID)
+    private function updatePaymentDetails($paymentDetails, $statusCode, $message, $providerNarration, $receiptNumber, $transactionID,$transactionStatus)
     {
         // Update the payment details
         $paymentDetails->statusCode = $statusCode;
         $paymentDetails->message = $message;
         $paymentDetails->receiptNumber = $receiptNumber;
         $paymentDetails->transactionID = $transactionID;
+        $paymentDetails->transactionStatus = $transactionStatus;
         $paymentDetails->save();
     }
 
@@ -99,7 +103,7 @@ class B2CResponse extends Controller
     }
 
     private function getPaymentDetails($payerTransactionID){
-        $paymentDetails = paymentTransactions::where('payerTransactionID', $payerTransactionID)->first();
+        $paymentDetails = Transactions::where('payerTransactionID', $payerTransactionID)->first();
         if (!$paymentDetails) {
             abort(400, 'Payment was not initiated');
         }

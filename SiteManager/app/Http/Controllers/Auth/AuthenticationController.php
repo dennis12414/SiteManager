@@ -204,7 +204,7 @@ class AuthenticationController extends Controller
         $url = config('settings.smsUrl'); 
         //TODO: log payload
         $data = array(
-            'notificationCode' =>config('settings.notificationCode') ,
+            'notificationCode' =>config('settings.notificationCode'),
             'clientID' => 1,
             'message' => $message,
             'subject' => config('settings.subject'),
@@ -221,8 +221,8 @@ class AuthenticationController extends Controller
         curl_setopt($ch, CURLOPT_POSTFIELDS, $payload); 
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json')); 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);//set maximum time to wait for a connection
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);//set maximum time to wait for a response
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 60);//set maximum time to wait for a connection
+        curl_setopt($ch, CURLOPT_TIMEOUT, 60);//set maximum time to wait for a response
         
         try {
             $result = curl_exec($ch); //executes the cURL session

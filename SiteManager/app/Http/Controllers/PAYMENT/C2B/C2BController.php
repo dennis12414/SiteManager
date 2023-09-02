@@ -5,7 +5,7 @@ use App\Http\Controllers\C2BResponse;
 use App\Http\Controllers\Controller;
 use App\Models\SiteManager;
 use App\Models\SiteManagerWallet;
-use App\Models\LoadWalletsTransaction;
+use App\Models\Transactions;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -55,6 +55,7 @@ class C2BController extends Controller
         }
       }
 
+
       private function validatePaymentRequest(Request $request)
       {
             $request->validate([
@@ -101,7 +102,8 @@ class C2BController extends Controller
 
       private function saveDetails($result, $siteManager, $amount){
         $wallet = $this->findWallet ($siteManager);
-        $transaction = LoadWalletsTransaction::create([
+        $transaction = Transactions::create([
+            'payType' => 'load',
             'partnerReferenceID' =>$result->data->data->partnerReferenceID,
             'transactionID' => $result->data->data->transactionID,
             'message' =>  $result->message,
@@ -112,7 +114,7 @@ class C2BController extends Controller
             'siteManagerId' => $wallet->siteManagerId,
             'phoneNumber' => $wallet->phoneNumber,
             'transactionAmount' => $amount,
-            'transactionStatus' => 'PENDING',
+            'transactionStatus' => 'Pending',
         ]);
 
 
@@ -120,26 +122,26 @@ class C2BController extends Controller
 
       private function STKPush(string $phoneNumber, int $amount,$uniqueId){
         $paymentDetails = [
-            "paymentCode" => "174379",//equivalent to a paybill number
-            "paymentOption"=>  "MPESA",//payment Method to be used
-            "serviceCode"=>  "SITEMANAGER-COLLECTIONS",//Payment Express's service to be used
+            "paymentCode" => config('settings.paymentCode'),//payment code provided by payment express
+            "paymentOption"=>  config('settings.paymentOption'),//payment Method to be used
+            "serviceCode"=>  config('settings.C2BserviceCode'),//Payment Express's service to be used
             "msisdn"=> $phoneNumber,//mobile wallet number to be charged in order to load site manager's account
-            "accountNumber"=>  "TestAccount",//equivalent to a sitemanager unique identifier
-            "partnerCallbackUrl"=> "http://172.105.90.112/site-manager-backend/SiteManager/api/confirmation",//CallbackUrl where the notification will be sent to once the payment is completed
+            "accountNumber"=>  config('settings.accountNumber'),//equivalent to a sitemanager unique identifier
+            "partnerCallbackUrl"=> config('settings.partnerCallbackUrl'),//url to be called after payment is made
             "amount"=>  $amount,//amount to be charged
             "partnerReferenceID"=>  $uniqueId,//third party's unique ID
-            "narration"=>  "Making Test Payment",//reason for the payment 
+            "narration"=> config('settings.narration'),//reason for the payment 
 
         ];
 
-        $url = "http://172.105.90.112:8080/paymentexpress/v1/paymentrequest/initiate";
-
+        $url =  config('settings.c2bUrl');
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_HTTPHEADER, array(
             'Content-Type: application/json',
             'Authorization: Bearer '.$this->getToken()
         ));
+        
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_POST, true);
         curl_setopt($curl, CURLOPT_POSTFIELDS,json_encode($paymentDetails));
@@ -198,9 +200,9 @@ class C2BController extends Controller
 
       public function getPaymentStatus(string $partnerReferenceID)
       {
-        $paymentDetails = LoadWalletsTransaction::where('partnerReferenceID',$partnerReferenceID)->first();
+        $paymentDetails = Transactions::where('partnerReferenceID',$partnerReferenceID)->first();
         if(!$paymentDetails){
-            return response(['message'=>'Payment was not initiated (partnerReferenceID not found)'],404);
+            return response(['message'=>'Payment was not initiated (partnerReferenceID not found)'],400);
         }
         $wallet =   SiteManagerWallet::where('siteManagerId',$paymentDetails->siteManagerId)->first();
         return response([

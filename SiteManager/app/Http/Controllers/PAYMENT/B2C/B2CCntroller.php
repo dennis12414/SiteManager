@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\Worker;
 use App\Models\SiteManagerWallet;
 use App\Models\SiteManager;
+use App\Models\Transactions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -35,12 +36,12 @@ class B2CCntroller extends Controller
                 return response([
                     'message' => 'Duplicate Payment',
                 ], 404);
-
-            }elseif($clockIn->paymentStatus === 'pending processing'){
-                return response([
-                    'message' => 'Payment already initiated',
-                ], 404);
             }
+            //}elseif($clockIn->paymentStatus === 'Pending'){
+                // return response([
+                 //    'message' => 'Payment already initiated',
+               // ], 404);
+            // }
 
             
             
@@ -68,9 +69,11 @@ class B2CCntroller extends Controller
                     $payerTransactionID = $result->data->payerTransactionID;
                     $transactionID = $result->data->transactionID;
                     $message = $result->data->message;
+                    $statusCode = $result->data->statusCode;
 
-                    DB::table('paymentTransactions')->insert([
-                        'statusCode' => $result->statusCode,
+                    Transactions::create([
+                        'payType' => 'pay',
+                        'statusCode' => $statusCode,
                         'payerTransactionID' => $payerTransactionID,
                         'transactionID' => $transactionID,
                         'message' => $message,
@@ -79,6 +82,8 @@ class B2CCntroller extends Controller
                         'siteManagerId' => $request->siteManagerId,
                         'workDate' => $request->date,
                         'payRate' => $worker->payRate,
+                        'transactionAmount' => $worker->payRate,
+                        'transactionStatus' => 'Pending',
                     ]);
 
                     //update held balance and available balance 
@@ -87,7 +92,7 @@ class B2CCntroller extends Controller
                     $wallet->save();
     
                     //update payment status as processing
-                    $clockIn->paymentStatus = 'pending processing';
+                    $clockIn->paymentStatus = 'Pending';
                     $clockIn->save();
 
                     return response([
@@ -97,7 +102,8 @@ class B2CCntroller extends Controller
     
                 }else{
                     $message = $result->message;
-                    DB::table('paymentTransactions')->insert([
+                    Transactions::create([
+                        'payType' => 'pay',
                         'statusCode' => '400',
                         'payerTransactionID' => $uniqueId,
                         'message' => $message,
@@ -106,6 +112,8 @@ class B2CCntroller extends Controller
                         'siteManagerId' => $request->siteManagerId,
                         'workDate' => $request->date,
                         'payRate' => $worker->payRate,
+                        'transactionAmount' => $worker->payRate,
+                        'transactionStatus' => 'Failed',
                     ]);
 
                     return response([
@@ -159,8 +167,7 @@ class B2CCntroller extends Controller
             'paymentType' => config('settings.paymentType'),
             'serviceCode' => config('settings.serviceCode'),
             'currencyCode' => config('settings.currencyCode'),
-            'callbackUrl' =>  config('settings.callbackUrl') . '/api/callback',
-            
+            'callbackUrl' =>  config('settings.callbackUrl'),  
         ];
 
         $url = config('settings.b2cUrl');
@@ -174,8 +181,8 @@ class B2CCntroller extends Controller
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);// return the transfer as a string
         curl_setopt($curl, CURLOPT_POST, true);// set post data to true
         curl_setopt($curl, CURLOPT_POSTFIELDS,json_encode($paymentDetails));
-        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 10);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 60);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 60);
 
         
 
@@ -184,14 +191,15 @@ class B2CCntroller extends Controller
             Log::info($response);
             $response = json_decode($response);
            
-
             if (curl_errno($curl)) {
                 throw new \Exception(curl_error($curl));
             }
         }catch(\Exception $e){
             Log::error($e->getMessage());
+            //TODO: dont return it to front end
             return "Error: " . $e->getMessage();
         }finally{
+
             curl_close($curl);
         }
        
@@ -218,7 +226,7 @@ class B2CCntroller extends Controller
         ->first();
 
         if (!$siteManager) {
-          abort(404, 'Site Manager does not exist');
+          abort(400, 'Site Manager does not exist');
         }
 
         return $siteManager;
@@ -229,7 +237,7 @@ class B2CCntroller extends Controller
         $project = Project::where('projectId',$id)->first();
 
         if (!$project) {
-            abort(404, 'Project does not exist');
+            abort(400, 'Project does not exist');
         }
 
         return $project;
@@ -240,7 +248,7 @@ class B2CCntroller extends Controller
         $worker = Worker::where('workerId',$id)->first();
 
         if (!$worker) {
-            abort(404, 'Worker does not exist');
+            abort(400, 'Worker does not exist');
         }
 
         return $worker;
@@ -254,7 +262,7 @@ class B2CCntroller extends Controller
                             ->first();
 
         if (!$clockIn) {
-           abort(404, 'Not clocked in!');
+           abort(400, 'Not clocked in!');
         }
 
         return $clockIn;
@@ -265,7 +273,7 @@ class B2CCntroller extends Controller
         $wallet = SiteManagerWallet::where('siteManagerId', $id)->first();
 
         if (!$wallet) {
-           abort(404, 'Wallet does not exist');
+           abort(400, 'Wallet does not exist');
         }
 
         return $wallet;
@@ -274,7 +282,7 @@ class B2CCntroller extends Controller
 
     private function getToken()
     {
-        $token = Cache::get('payment_token');
+        $token = Cache::get('payment_token_2');
 
         if (!$token) {
             $url = config('settings.authUrl');
@@ -291,13 +299,27 @@ class B2CCntroller extends Controller
             if ($response->ok()) {
                 $result = $response->json();
                 $token = $result['data']['token'];
-                Cache::put('payment_token', $token, 50);
+                Cache::put('payment_token_2', $token, 50);
             } else {
                 throw new \Exception('Failed to get payment token');
             }
         }
 
         return $token;
+    }
+
+    public function getPaymentStatus(string $payerTransactionID){
+        $paymentDetails = Transactions::where('payerTransactionID',$payerTransactionID)->first();
+        if(!$paymentDetails){
+            return response(['message'=>'Payment was not initiated (partnerReferenceID not found)'],400);
+        }
+
+        return response([
+            'transactionStatus' => $paymentDetails->transactionStatus,
+            'message'=> $paymentDetails->message,
+        ],200);
+
+
     }
 
 

@@ -11,23 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('loadWalletsTransactions', function (Blueprint $table) {
-            $table->id('loadTransactionId');
-            $table->string('partnerReferenceID')->nullable();
-            $table->string('transactionID')->nullable();
-            $table->string('message')->nullable();
-            $table->string('statusCode')->nullable();
-            $table->string('partnerTransactionID')->nullable();
-            $table->string('payerTransactionID')->nullable();
-            $table->string('receiptNumber')->nullable();
-            $table->string('siteManagerId')->nullable();
-            $table->string('phoneNumber')->nullable();
-            $table->decimal('transactionAmount', 10, 2);
-            $table->string('transactionStatus')->nullable();
-            $table->timestamps();
-
-
-            $table->id('transactionId');
+        Schema::create('Transactions', function (Blueprint $table) {
+            $table->id('Id');
+            $table->string('payType')->nullable();
             $table->string('statusCode')->nullable();
             $table->string('partnerReferenceID')->nullable();
             $table->string('transactionID')->nullable(); //generate by backend pay
@@ -45,15 +31,6 @@ return new class extends Migration
             $table->decimal('transactionAmount', 10, 2);
             $table->string('transactionStatus')->nullable();
             $table->timestamps();
-
-
-
-
-
-
-
-
-
         });
     }
 
@@ -62,6 +39,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('loadWalletsTransactions');
+        Schema::dropIfExists('Transactions');
     }
 };

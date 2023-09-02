@@ -5,15 +5,17 @@ namespace App\Http\Controllers\Wallet;
 use App\Http\Controllers\Controller;
 use App\Models\SiteManager;
 use App\Models\SiteManagerWallet;
-use App\Models\LoadWalletsTransaction;
+use App\Models\Transactions;
 use App\Models\paymentTransactions;
 use App\Models\MpesaTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Worker;
+use Carbon\Carbon;
 
 class WalletController extends Controller
 {
+    
     public function getWalletBalance(string $phoneNumber){
       
         $siteManager = SiteManager::where('phoneNumber', $phoneNumber)
@@ -49,13 +51,21 @@ class WalletController extends Controller
         ], 200);
   }
 
-   public function getTransactionHistory(string $phoneNumber, string $startDate = null,string $endDate = null,string $paymentType = null)
+   public function getTransactionHistory(string $phoneNumber, string $startDate = null,string $endDate = null, string $paymentType = null, string $paymentStatus = null)
     {
+        
         $startDate = request('startDate');
         $endDate = request('endDate');
+        
+        
         $paymentType = request('paymentType');
+        $paymentStatus = request('paymentStatus');
 
-
+      
+        if ($startDate && $endDate) {
+            $startDate = $startDate . ' 00:00:00';
+            $endDate = $endDate . ' 23:59:59';
+        }
 
         $siteManager = SiteManager::where('phoneNumber', $phoneNumber)
                     ->where('phoneVerified', true)
@@ -67,65 +77,25 @@ class WalletController extends Controller
             ], 404);
         }
 
-        if ($paymentType === 'load') {
-            $query = LoadWalletsTransaction::select('loadTransactionId', 'siteManagerId', 'transactionAmount', 'transactionStatus','message', 'created_at as date')
-                ->where('siteManagerId', $siteManager->siteManagerId)
-                ->orderBy('date', 'desc');
+        $query = Transactions::where('siteManagerId', $siteManager->siteManagerId)
+            ->when($paymentType, function($query) use ($paymentType){
+                return $query->where('payType',$paymentType);
+            })
+            ->when($paymentStatus, function($query) use ($paymentStatus){
+                return $query->where('transactionStatus',$paymentStatus);
+            })
+            ->when($startDate && $endDate == null, function ($query) use ($startDate) {
+                return $query->whereDate('created_at', $startDate);
+            })
+            ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
+                return $query->whereBetween('created_at', [$startDate, $endDate]);
+                //better way to do it
+                // return $query->whereDate('created_at', '>=', $startDate)
+                //     ->whereDate('created_at', '<=', $endDate);
+            })
+            ->orderBy('created_at', 'desc');
 
-         } elseif ($paymentType === 'pay') {
-            $query = PaymentTransactions::select('paymentTransactionId','siteManagerId', 'workerId', 'projectId', 'payRate', 'statusCode','message', 'workDate','created_at as date')
-                ->where('siteManagerId', $siteManager->siteManagerId)
-                ->orderBy('date', 'desc');
-
-
-                
-        } else {
-            $loadTransactions = LoadWalletsTransaction::select('loadTransactionId','siteManagerId', 'transactionAmount', 'transactionStatus','message', 'created_at as date')
-                    ->where('siteManagerId', $siteManager->siteManagerId)
-                    ->when($startDate, function ($query) use ($startDate) {
-                        return $query->where('date', $startDate);
-                    })
-                    ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
-                        return $query->whereBetween('date', [$startDate, $endDate]);
-                    })
-                    ->get();
-
-            $paymentTransactions = PaymentTransactions::select('paymentTransactionId','siteManagerId', 'workerId', 'projectId', 'payRate', 'statusCode','message', 'workDate', 'created_at as date')
-                    ->where('siteManagerId', $siteManager->siteManagerId)
-                    ->when($startDate, function ($query) use ($startDate) {
-                        return $query->where('date', $startDate);
-                    })
-                    ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
-                        return $query->whereBetween('date', [$startDate, $endDate]);
-                    })
-                    ->get();
-
-                foreach($paymentTransactions as $transaction){
-                    $worker = Worker::where('workerId', $transaction->workerId)->first();
-                    $transaction->workerName = $worker->name;
-            }
-
-            $transactions = $loadTransactions->concat($paymentTransactions)->sortByDesc('date');
-            return response([
-                'transactions'=> $transactions,
-            ],200);
-        }
-
-        if ($startDate) {
-            $query->whereDate('created_at', '>=', $startDate);
-        }
-
-        if ($endDate) {
-            $query->whereDate('created_at', '<=', $endDate);
-        }
-
-        if($startDate && $endDate){
-            $startDate = $startDate . ' 00:00:00';
-            $endDate = $endDate . ' 23:59:59';
-            $query->whereBetween('date', [$startDate, $endDate]);
-        }
-
-        $transactions = $query->get();
+         $transactions = $query->get();
 
         if($paymentType === 'pay') {
             foreach($transactions as $transaction){
@@ -133,6 +103,12 @@ class WalletController extends Controller
                 $transaction->workerName = $worker->name;
             }
         }
+
+        $transactions = $transactions->map(function ($transaction) {
+            return array_filter($transaction->toArray(), function ($value) {
+                return !is_null($value);
+            });
+        });
 
         return response([
             'transactions'=> $transactions,

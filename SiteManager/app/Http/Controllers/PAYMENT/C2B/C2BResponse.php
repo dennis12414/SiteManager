@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\MpesaTransaction;
 use App\Models\SiteManager;
 use App\Models\SiteManagerWallet;
-use App\Models\LoadWalletsTransaction;
+use App\Models\Transactions;
 use Illuminate\Support\Facades\Log;
 
 
@@ -38,7 +38,7 @@ class C2BResponse extends Controller
             $paymentDetails = $this->getPaymentDetails($partnerTransactionID);
 
             if($statusCode === "00"){
-                $transactionStatus = "success";
+                $transactionStatus = "Success";
                 $this->updatePaymentDetails($partnerTransactionID, $statusCode, $message,$receiptNumber, $transactionID, $transactionStatus,$payerTransactionID);
                 $this->updateWalletBalance($paymentDetails );
                 return response([
@@ -48,7 +48,7 @@ class C2BResponse extends Controller
                 ], 200);
         
             }else{
-                $transactionStatus = "failed";
+                $transactionStatus = "Failed";
                 $this->updatePaymentDetails($partnerTransactionID, $statusCode, $message,$receiptNumber, $transactionID,$transactionStatus,$payerTransactionID);
                 return response([
                     'valid'=> false,
@@ -157,11 +157,11 @@ class C2BResponse extends Controller
     }
 
     private function getPaymentDetails($partnerReferenceID){
-        $paymentDetails = LoadWalletsTransaction::where('partnerReferenceID',$partnerReferenceID)->first();
+        $paymentDetails = Transactions::where('partnerReferenceID',$partnerReferenceID)->first();
         if(!$paymentDetails){
             abort(400, 'Payment was not initiated (partnerReferenceID not found)');
         }
-        if ($paymentDetails->statusCode === '00') {
+        if ($paymentDetails->transactionStatus === 'Success') {
             abort(200, 'Payment already processed ');
         }
 

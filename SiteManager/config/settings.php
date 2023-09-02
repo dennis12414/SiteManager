@@ -18,6 +18,7 @@ return [
     'notificationCode' => env('SMS_NOTIFICATION_CODE', 'PMANAGER-SMS'),
     'smsUrl' => env('SMS_URL','http://172.105.90.112:8080/notification-api/v1/notification/create'),
     'subject' => env('SUBJECT','SMS Test'),
+    
 
     /**
      *  -----------------------------
@@ -28,9 +29,8 @@ return [
     'username' => env('USERNAME','ikoaqua-mpesa-user'),
     'password' => env('PASSWORD','F5Hm5CNDg0kG'),
 
-
     /**
-     *  -----------------------------
+     * -----------------------------
      * Configuration B2C
      * ------------------------------
      */
@@ -41,14 +41,20 @@ return [
     'currencyCode' => env('CURRENCY','KES'),
     'callbackUrl' => env('CALLBACK_URL','http://172.105.90.112/site-manager-backend/SiteManager'),
 
+
     /**
-     *  -----------------------------
+     * -----------------------------
      * Configuration C2B
-     * ------------------------------
+     * -----------------------------
      */
 
-
-
+    'c2bUrl' => env('C2B_URL','http://172.105.90.112:8080/paymentexpress/v1/paymentrequest/initiate'),
+    'paymentCode' => env('PAYMENT_CODE','174379'),
+    'paymentOption' => env('PAYMENT_OPTION','MPESA'),
+    'C2BserviceCode' => env('SERVICE_CODE','SITEMANAGER-COLLECTIONS'),
+    'accountNumber' => env('ACCOUNT_NUMBER','TestAccount'),
+    'partnerCallbackUrl' => env('PARTNER_CALLBACK_URL','http://172.105.90.112/site-manager-backend/SiteManager'),
+    'narration' => env('NARRATION','Making Test Payment'),
 
 ];
 
