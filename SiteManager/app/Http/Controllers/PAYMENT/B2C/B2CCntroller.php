@@ -161,13 +161,13 @@ class B2CCntroller extends Controller
             'customerName' => $name,
             'msisdn' => $phoneNumber,
             'accountNumber' => $phoneNumber,
-            'amount' => $amount,
+            'amount' => 10,
             'payerNarration' => config('settings.payerNarration'),
             'partnerTransactionID' => $uniqueId,
             'paymentType' => config('settings.paymentType'),
             'serviceCode' => config('settings.serviceCode'),
             'currencyCode' => config('settings.currencyCode'),
-            'callbackUrl' =>  config('settings.callbackUrl'),  
+            'callbackUrl' =>  config('settings.callbackUrl') . '/api/callback',  
         ];
 
         $url = config('settings.b2cUrl');

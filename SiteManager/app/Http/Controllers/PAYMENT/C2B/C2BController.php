@@ -127,7 +127,7 @@ class C2BController extends Controller
             "serviceCode"=>  config('settings.C2BserviceCode'),//Payment Express's service to be used
             "msisdn"=> $phoneNumber,//mobile wallet number to be charged in order to load site manager's account
             "accountNumber"=>  config('settings.accountNumber'),//equivalent to a sitemanager unique identifier
-            "partnerCallbackUrl"=> config('settings.partnerCallbackUrl'),//url to be called after payment is made
+            "partnerCallbackUrl"=> config('settings.partnerCallbackUrl') . '/api/confirmation',//url to be called after payment is made
             "amount"=>  $amount,//amount to be charged
             "partnerReferenceID"=>  $uniqueId,//third party's unique ID
             "narration"=> config('settings.narration'),//reason for the payment 
