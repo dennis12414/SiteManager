@@ -95,8 +95,11 @@ class B2CCntroller extends Controller
                     $clockIn->paymentStatus = 'Pending';
                     $clockIn->save();
 
+                    $a = config('settings.callbackUrl') . '/api/callback';
+
                     return response([
                         'message' => $message,
+                        'a' => $a,
                         'payerTransactionID'=> $payerTransactionID, 
                     ], 200);
     

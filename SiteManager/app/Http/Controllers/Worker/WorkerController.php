@@ -36,9 +36,12 @@ class WorkerController extends Controller
             return response(['message' => 'Phone Number already exists'], 409);
         }
 
-        $siteManager = SiteManager::find($request->siteManagerId);
-        if (!$siteManager) {
-            return response(['message' => 'Site Manager does not exist'], 404);
+        //site manager should exist
+        $siteManager = SiteManager::where('siteManagerId', $request->siteManagerId)->first();
+        if(!$siteManager){
+            return response([
+                'message' => 'Site Manager does not exist',
+            ], 404);
         }
 
         $worker = Worker::create([
@@ -59,74 +62,78 @@ class WorkerController extends Controller
      * search for workers
      */
     public function search(string $siteManagerId, string $searchTerm)
-    {
+    {  
         $workers = Worker::where('siteManagerId', $siteManagerId)
-            ->where(function ($query) use ($searchTerm) {
-                $query->where('name', 'LIKE', '%' . $searchTerm . '%')
-                    ->orWhere('phoneNumber', 'LIKE', '%' . $searchTerm . '%');
+            ->where('name', 'LIKE', '%'.$searchTerm.'%')
+            ->orWhere('phoneNumber', 'LIKE', '%'.$searchTerm.'%')
+            ->get(); 
+
+        //workers is empty
+        if(!$workers){
+            return response([
+                'message' => 'No workers found',
+            ], 404);
+        }
+
+        return response([
+            'message' => 'Retrieved successfully',
+            'workers' => $workers->map(function($worker){
+                return $worker->only(['workerId','name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']);
             })
-            ->get();
-
-            //the where method can take a closure as an argument. 
-            //The closure receives a $query parameter, 
-            //which is a new query builder instance that can be used to add more 
-            //conditions to the query.
-
-
-
-        if ($workers->isEmpty()) {
-            return response([
-                'message' => 'No workers found'
-            ], 404);
-        }
-
-        $workerData = $workers->map(function ($worker) {
-            return $worker->only(['workerId', 'name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']);
-        });
-
-        return response([
-            'message' => 'Retrieved successfully', 
-            'workers' => $workerData
         ], 200);
-    }
+        
+    } 
 
 
-    public function show(string $siteManagerId, string $startDate = null, string $endDate = null, string $searchQuery = null)
+    public function show(string $id, string $startDate = null, string $endDate = null, string $searchQuery = null) 
     {
-        $query = Worker::where('siteManagerId', $siteManagerId);
+        $startDate = request('startDate');
+        $endDate = request('endDate');
+        $searchQuery = request('searchQuery');
 
-        if ($startDate && $endDate) {
-            $query->whereBetween('dateRegistered', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
-        } elseif ($startDate) {
-            $query->where('dateRegistered', $startDate . ' 00:00:00');
+        if($startDate && $endDate){
+            $startDate = $startDate . ' 00:00:00';
+            $endDate = $endDate . ' 23:59:59';
+            $workers = Worker::where('siteManagerId', $id)
+                ->whereBetween('dateRegistered', [$startDate, $endDate])
+                ->get();
+        }elseif($startDate){
+            
+            $workers = Worker::where('siteManagerId', $id)
+                ->where('dateRegistered',  [$startDate . ' 00:00:00', $startDate . ' 23:59:59'])
+                ->get();
         }
-        $workers = $query->get();
-
-        if ($searchQuery) {
-            $workers = $workers->filter(function ($worker) use ($searchQuery) {
-                return strpos(strtolower($worker->name), strtolower($searchQuery)) !== false ||
-                    strpos(strtolower($worker->phoneNumber), strtolower($searchQuery)) !== false;
-            })->values(); 
+        else{
+            
+            $workers = Worker::where('siteManagerId', $id)->get();
         }
 
-        if ($workers->isEmpty()) {
+
+
+        if($searchQuery){
+            $workers = $workers->filter(function($worker) use ($searchQuery){
+                if(strpos(strtolower($worker->name), strtolower($searchQuery)) !== false || strpos(strtolower($worker->phoneNumber) , strtolower($searchQuery)) !== false){
+                    return true;
+                }
+            })->values();
+        }
+
+        if(!$workers){
             return response([
-                'message' => 'No workers found'
+                'message' => 'No workers found',
             ], 404);
         }
 
-        $workerData = $workers->map(function ($worker) {
-            return $worker->only(['workerId', 'name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']);
-        });
-
         return response([
-            'message' => 'Retrieved successfully', 
-            'workers' => $workerData
+            'message' => 'Retrieved successfully',
+            'workers' => $workers->map(function($worker){
+                return $worker->only(['workerId','name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']);
+            })
         ], 200);
+
     }
 
-
-    public function update(Request $request, string $workerId)
+    public function update(Request $request,string $workerId)
     {
         $request->validate([
             'name' => 'required|string',
@@ -134,40 +141,50 @@ class WorkerController extends Controller
             'payRate' => 'required|numeric',
         ]);
 
-        $worker = Worker::find($workerId);
-        if (!$worker) {
-            return response([
-                'message' => 'Worker does not exist'
-            ], 404);
-        }
-
-        $worker->update([
-            'name' => $request->name,
-            'phoneNumber' => $request->phoneNumber,
-            'payRate' => $request->payRate,
-        ]);
-
-        return response([
-            'message' => 'Worker updated successfully',
-            'worker' => $worker->only(['workerId', 'name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']),
-        ], 200);
-    }
-
-    public function archive(string $workerId)
-    {
-        $worker = Worker::find($workerId);
-        if (!$worker) {
+        $worker = Worker::where('workerId', $workerId)
+            ->first();
+        if(!$worker){
             return response([
                 'message' => 'Worker does not exist',
             ], 404);
         }
 
+        $worker->name = $request->name;
+        $worker->phoneNumber = $request->phoneNumber;
+        $worker->payRate = $request->payRate;
+        $worker->save();
+
+        return response([
+            'message' => 'Worker updated successfully',
+            'worker' => $worker->only(['workerId','name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']),
+        ], 200);
+
+    }
+
+    public function archive(string $workerId){
+        
+        $worker = Worker::where('workerId', $workerId)
+            //->where('siteManagerId', $siteManagerId)
+                  ->first();
+        if (!$worker) {
+            return response([
+               
+                'workerId' => $workerId,
+                'message' => 'Worker does not exist',
+            ], 404); 
+        }
+
         $worker->delete();
 
         return response([
+           
+            'workerId' => $workerId,
             'message' => 'Worker archived successfully',
-        ], 200);
+        ], 200); 
+
+       
     }
+
 }
 
 

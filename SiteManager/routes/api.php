@@ -70,7 +70,7 @@ Route::middleware('auth:api')->group(function () {
     
 
 });
-Route::post('/debitWallet', [C2BController::class, 'initiatePayment']);
+    Route::post('/debitWallet', [C2BController::class, 'initiatePayment']);
     Route::get('/walletLoadingStatus/{partnerReferenceID}', [C2BController::class, 'getPaymentStatus']);
     Route::get('/paymentStatus/{payerTransactionID}', [B2CCntroller::class, 'getPaymentStatus']);
     Route::get('/transactionHistory/{phoneNumber}', [WalletController::class, 'getTransactionHistory']);
