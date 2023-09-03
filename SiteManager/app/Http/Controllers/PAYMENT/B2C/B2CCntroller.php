@@ -164,7 +164,7 @@ class B2CCntroller extends Controller
             'customerName' => $name,
             'msisdn' => $phoneNumber,
             'accountNumber' => $phoneNumber,
-            'amount' => 10,
+            'amount' => $amount,
             'payerNarration' => config('settings.payerNarration'),
             'partnerTransactionID' => $uniqueId,
             'paymentType' => config('settings.paymentType'),
