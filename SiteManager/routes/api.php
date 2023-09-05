@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
 Route::post('/register', [AuthenticationController::class, 'register']); //register
 Route::post('/verify', [AuthenticationController::class, 'verify']);//verify
 Route::post('/setPassword', [AuthenticationController::class, 'setPassword']);//set password
@@ -32,7 +33,6 @@ Route::post('/login', [AuthenticationController::class, 'login']);//login
 Route::post('/payWorker', [B2CCntroller::class, 'initiatePayment']);
 Route::post('callback', [B2CResponse::class, 'b2CResponse']);
 Route::post('/b2c/timeout', [MPESAController::class, 'timeout'])->name('b2c.timeout');
-
 Route::post('confirmation', [C2BResponse::class, 'confirmation']);
 
 

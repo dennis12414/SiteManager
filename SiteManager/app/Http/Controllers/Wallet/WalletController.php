@@ -89,20 +89,26 @@ class WalletController extends Controller
             })
             ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
                 return $query->whereBetween('created_at', [$startDate, $endDate]);
-                //better way to do it
-                // return $query->whereDate('created_at', '>=', $startDate)
-                //     ->whereDate('created_at', '<=', $endDate);
             })
             ->orderBy('created_at', 'desc');
 
          $transactions = $query->get();
 
-        if($paymentType === 'pay') {
-            foreach($transactions as $transaction){
+         foreach($transactions as $transaction){
+            if($transaction->workerId){
                 $worker = Worker::where('workerId', $transaction->workerId)->first();
                 $transaction->workerName = $worker->name;
+                $transaction->workerPhoneNumber = $worker->phoneNumber;
             }
-        }
+
+         }
+
+        // if($paymentType === 'pay') {
+        //     foreach($transactions as $transaction){
+        //         $worker = Worker::where('workerId', $transaction->workerId)->first();
+        //         $transaction->workerName = $worker->name;
+        //     }
+        // }
 
         $transactions = $transactions->map(function ($transaction) {
             return array_filter($transaction->toArray(), function ($value) {

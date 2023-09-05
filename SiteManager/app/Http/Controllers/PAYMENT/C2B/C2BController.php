@@ -205,12 +205,16 @@ class C2BController extends Controller
             return response(['message'=>'Payment was not initiated (partnerReferenceID not found)'],400);
         }
         $wallet =   SiteManagerWallet::where('siteManagerId',$paymentDetails->siteManagerId)->first();
+
         return response([
             'message'=> $paymentDetails->message,
             'paymentStatus'=>$paymentDetails->transactionStatus,
             'walletBalance'=>$wallet->balance,
+            'transactionAmount' => $paymentDetails->transactionAmount,
+            'transactionID' => $paymentDetails->transactionID,
+            'receiptNumber' => $paymentDetails->receiptNumber,
+            'statusCode' => $paymentDetails->statusCode,
         ],200);
-
       }
   
 

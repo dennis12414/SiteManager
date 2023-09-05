@@ -99,7 +99,6 @@ class B2CCntroller extends Controller
 
                     return response([
                         'message' => $message,
-                        'a' => $a,
                         'payerTransactionID'=> $payerTransactionID, 
                     ], 200);
     
@@ -320,6 +319,11 @@ class B2CCntroller extends Controller
         return response([
             'transactionStatus' => $paymentDetails->transactionStatus,
             'message'=> $paymentDetails->message,
+            'transactionAmount' => $paymentDetails->transactionAmount,
+            'payerTransactionID' => $paymentDetails->payerTransactionID,
+            'transactionID' => $paymentDetails->transactionID,
+            'receiptNumber' => $paymentDetails->receiptNumber,
+            'statusCode' => $paymentDetails->statusCode,
         ],200);
 
 

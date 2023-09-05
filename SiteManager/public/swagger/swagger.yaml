@@ -6,9 +6,9 @@ info:
     email: ndungudennis250@gmail.com
   version: 1.0.0
 servers:
-  - url: http://localhost
+  - url: http://localhost/api
     description: Development server
-  - url: http://172.105.90.112/site-manager-backend/SiteManager
+  - url: http://172.105.90.112/site-manager-backend/SiteManager/api
     description: Production server
 
 components:
@@ -19,7 +19,7 @@ components:
       bearerFormat: JWT
 
 paths:
-  /api/register:
+  /register:
     post:
       tags:
         - Authentication
@@ -69,7 +69,7 @@ paths:
                     type: object
                     example: The given data was invalid.
                 type: object
-  /api/verify:
+  /verify:
     post:
       tags:
         - Authentication
@@ -119,7 +119,7 @@ paths:
                     type: string
                     example: Invalid OTP
                 type: object
-  /api/setPassword:
+  /setPassword:
     post:
       tags:
         - Authentication
@@ -169,7 +169,7 @@ paths:
                     type: string
                     example: Invalid OTP
                 type: object
-  /api/login:
+  /login:
     post:
       tags:
         - Authentication
@@ -220,7 +220,7 @@ paths:
                     example: Invalid credentials
                 type: object
 
-  /api/projects:
+  /projects:
     post:
       tags:
         - Projects
@@ -275,7 +275,7 @@ paths:
                     example: The project details
                 type: object
 
-  /api/projects/{siteMagerId}:
+  /projects/{siteMagerId}:
     get:
       tags:
         - Projects
@@ -319,7 +319,7 @@ paths:
         '500':
           description: Server error
 
-  /api/projects/details/{projectId}:
+  /projects/details/{projectId}:
     get:
       tags:
         - Projects
@@ -361,7 +361,7 @@ paths:
         '500':
           description: Server error
         
-  /api/projects/update/{projectId}:
+  /projects/update/{projectId}:
     put:
       tags:
         - Projects
@@ -433,7 +433,7 @@ paths:
           description: Server error
           
 
-  /api/projects/archive/{projectId}:
+  /projects/archive/{projectId}:
     delete:
       tags:
         - Projects
@@ -476,7 +476,7 @@ paths:
           description: Server error
 
 
-  /api/workers:
+  /workers:
     post:
       tags:
         - Workers
@@ -531,7 +531,7 @@ paths:
                     example: The worker details
                 type: object
 
-  /api/workers/{siteManagerId}:
+  /workers/{siteManagerId}:
     get:
       tags:
         - Workers
@@ -599,7 +599,7 @@ paths:
         '500':
           description: Server error
  
-  /api/workers/search/{siteManagerId}/{searchTerm}:
+  /workers/search/{siteManagerId}/{searchTerm}:
     get:
       tags:
         - Workers
@@ -650,7 +650,7 @@ paths:
         '500':
           description: Server error
 
-  /api/workers/update/{workerId}:
+  /workers/update/{workerId}:
     put:
       tags:
         - Workers
@@ -715,7 +715,7 @@ paths:
         '500':
           description: Server error
 
-  /api/workers/archive/{workerId}:
+  /workers/archive/{workerId}:
     delete:
       tags:
         - Workers
@@ -757,7 +757,7 @@ paths:
         '500':
           description: Server error
 
-  /api/clockIn:
+  /clockIn:
     post:
       tags:
         - ClockIns
@@ -819,73 +819,73 @@ paths:
         '500':
           description: Server error
           
-  # /api/clockedInWorkers:
-  #   post:
-  #     tags:
-  #       - ClockIns
-  #     summary: Get all clocked in workers
-  #     description: Get all clocked in workers
-  #     operationId: getAllClockedInWorkers
-  #     requestBody:
-  #       description: Pass site manager id
-  #       required: true
-  #       content:
-  #         application/json:
-  #           schema:
-  #             required:
-  #               - siteManagerId
-  #               - projectId
-  #             properties:
-  #               siteManagerId:
-  #                 type: integer
-  #                 format: int64
-  #                 example: 1
-  #               projectId:
-  #                 type: integer
-  #                 format: int64
-  #                 example: 1
-  #               startDate:
-  #                 type: string
-  #                 format: date-time
-  #                 example: '2023-07-20'
-  #               endDate:
-  #                 type: string
-  #                 format: date-time
-  #                 example: '2023-07-20'
-  #               searchTerm:
-  #                 type: string
-  #                 format: string
-  #                 example: 'John'
-  #             type: object
-  #     security:
-  #       - bearerAuth: []
-  #     responses:
-  #       '200':
-  #         description: Success
-  #         content:
-  #           application/json:
-  #             schema:
-  #               properties:
-  #                 workers:
-  #                   type: array
-  #                   items:
-  #                     type: object
-  #                     example: The worker details
-  #               type: object
-  #       '404':
-  #         description: No workers found
-  #         content:
-  #           application/json:
-  #             schema:
-  #               properties:
-  #                 message:
-  #                   type: string
-  #                   example: No workers found
-  #               type: object
-  #       '500':
-  #         description: Server error
+  /clockedInWorkers:
+    post:
+      tags:
+        - ClockIns
+      summary: Get all clocked in workers
+      description: Get all clocked in workers
+      operationId: getAllClockedInWorkers
+      requestBody:
+        description: Pass site manager id
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - siteManagerId
+                - projectId
+              properties:
+                siteManagerId:
+                  type: integer
+                  format: int64
+                  example: 1
+                projectId:
+                  type: integer
+                  format: int64
+                  example: 1
+                startDate:
+                  type: string
+                  format: date-time
+                  example: '2023-07-20'
+                endDate:
+                  type: string
+                  format: date-time
+                  example: '2023-07-20'
+                searchTerm:
+                  type: string
+                  format: string
+                  example: 'John'
+              type: object
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                properties:
+                  workers:
+                    type: array
+                    items:
+                      type: object
+                      example: The worker details
+                type: object
+        '404':
+          description: No workers found
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: No workers found
+                type: object
+        '500':
+          description: Server error
   
-  /api/clockedInWorker/{siteManagerId}/{projectId}:
+  /clockedInWorker/{siteManagerId}/{projectId}:
     get:
       tags:
         - ClockIns
@@ -959,7 +959,7 @@ paths:
           description: Server error
 
       
-  /api/report/{projectId}:
+  /report/{projectId}:
     get:
       tags:
         - Reports
@@ -1009,57 +1009,57 @@ paths:
         '500':
           description: Server error
 
-  # /api/workerReport/{workerId}:
-  #   get:
-  #     tags:
-  #       - Reports
-  #     summary: Generate worker report
-  #     description: Generate worker report
-  #     operationId: generateWorkerReport
-  #     parameters:
-  #       - name: workerId
-  #         in: path
-  #         description: The worker id
-  #         required: true
-  #         schema:
-  #           type: integer
-  #           format: int64
-  #           example: 1
-  #       - name: startDate
-  #         in: query
-  #         description: The start date
-  #         required: false
-  #         schema:
-  #           type: string
-  #           format: date-time
-  #           example: '2023-07-20'
-  #       - name: endDate
-  #         in: query
-  #         description: The end date
-  #         required: false
-  #         schema:
-  #           type: string
-  #           format: date-time
-  #           example: '2023-07-20'
-  #     security:
-  #       - bearerAuth: []
-  #     responses:
-  #       '200':
-  #         description: Report generated successfully
-  #       '404':
-  #         description: No report found
-  #         content:
-  #           application/json:
-  #             schema:
-  #               properties:
-  #                 message:
-  #                   type: string
-  #                   example: No report found
-  #               type: object
-  #       '500':
-  #         description: Server error
+  /workerReport/{workerId}:
+    get:
+      tags:
+        - Reports
+      summary: Generate worker report
+      description: Generate worker report
+      operationId: generateWorkerReport
+      parameters:
+        - name: workerId
+          in: path
+          description: The worker id
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+        - name: startDate
+          in: query
+          description: The start date
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: '2023-07-20'
+        - name: endDate
+          in: query
+          description: The end date
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: '2023-07-20'
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Report generated successfully
+        '404':
+          description: No report found
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: No report found
+                type: object
+        '500':
+          description: Server error
 
-  /api/siteManager:
+  /siteManager:
     get:
       tags:
         - SiteManagers
@@ -1086,7 +1086,7 @@ paths:
         '500':
           description: Server error
 
-  /api/siteManager/archive/{siteManagerId}:
+  /siteManager/archive/{siteManagerId}:
     delete:
       tags:
         - SiteManagers
@@ -1120,7 +1120,7 @@ paths:
         '500':
           description: Server error
 
-  /api/debitWallet:
+  /debitWallet:
     post:
       tags:
         - Wallets
@@ -1147,7 +1147,8 @@ paths:
                   format: string
                   example: '1'
               type: object
-
+      security:
+        - bearerAuth: []
       responses:
         '201':
           description: Success
@@ -1162,8 +1163,53 @@ paths:
                     type: object
                     example: Phone number not found.
                 type: object 
+        '500':
+          description: Server error
 
-  /api/walletBalance/{phoneNumber}:
+  /walletLoadingStatus/{partnerReferenceID}:
+    get:
+      tags:
+        - Wallets
+      summary: Get wallet loading status
+      description: Get wallet loading status
+      operationId: walletLoadingStatus
+      parameters:
+        - name: partnerReferenceID
+          in: path
+          description: partnerReferenceID
+          required: true
+          schema:
+            type: string
+            example: '123456789'
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                properties:
+                  workers:
+                    type: array
+                    items:
+                      type: object
+                      example: The wallet loading status
+                type: object
+        '404':
+          description: Wallet not found
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: Wallet not found
+                type: object
+        '500':
+          description: Server error
+
+  /walletBalance/{phoneNumber}:
     get:
       tags:
         - Wallets
@@ -1178,7 +1224,8 @@ paths:
           schema:
             type: string
             example: '0712345678'
- 
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Success
@@ -1205,7 +1252,7 @@ paths:
         '500':
           description: Server error
 
-  /api/payWorker:
+  /payWorker:
     post:
       tags:
         - Payments
@@ -1242,7 +1289,8 @@ paths:
                   format: string
                   example: '2023-07-01'
               type: object
-
+      security:
+        - bearerAuth: []
       responses:
         '201':
           description: Success
@@ -1257,5 +1305,124 @@ paths:
                     type: object
                     example: Insufficient funds.
                 type: object 
+
+  /paymentStatus/{payerTransactionID}:
+    get:
+      tags:
+        - Payments
+      summary: Get payment status
+      description: Get payment status
+      operationId: paymentStatus
+      parameters:
+        - name: payerTransactionID
+          in: path
+          description: payerTransactionID
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                properties:
+                  workers:
+                    type: array
+                    items:
+                      type: object
+                      example: The payment status
+                type: object
+
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: Payment not found
+                type: object
+
+  /transactionHistory/{phoneNumber}:
+    get:
+      tags:
+        - Transactions
+      summary: Get transaction history
+      description: Get transaction history
+      operationId: transactionHistory
+      parameters:
+        - name: phoneNumber
+          in: path
+          description: phone number
+          required: true
+          schema:
+            type: string
+            example: '0712345678'
+        - name: startDate
+          in: query
+          description: The start date
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: '2023-07-20'
+        - name: endDate
+          in: query
+          description: The end date
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: '2023-07-20'
+        - name: paymentType
+          in: query
+          description: paymentType
+          required: false
+          schema:
+            type: string
+            enum:
+             - pay
+             - load
+        - name: paymentStatus
+          in: query
+          description: paymentType
+          required: false
+          schema:
+            type: string
+            enum:
+             - success
+             - failed
+             - pending
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                properties:
+                  workers:
+                    type: array
+                    items:
+                      type: object
+                      example: The transaction history
+                type: object
+        '404':
+          description: Transaction not found
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: Transaction not found
+                type: object
+        '500':
+          description: Server error
 
     
