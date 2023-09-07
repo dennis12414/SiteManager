@@ -28,6 +28,7 @@ Route::post('/register', [AuthenticationController::class, 'register']); //regis
 Route::post('/verify', [AuthenticationController::class, 'verify']);//verify
 Route::post('/setPassword', [AuthenticationController::class, 'setPassword']);//set password
 Route::post('/login', [AuthenticationController::class, 'login']);//login
+Route::post('/forgotPassword', [AuthenticationController::class, 'forgotPassword']);//login
 
 
 Route::post('/payWorker', [B2CCntroller::class, 'initiatePayment']);

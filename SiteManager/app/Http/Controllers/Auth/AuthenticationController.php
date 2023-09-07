@@ -59,18 +59,17 @@ class AuthenticationController extends Controller
             ], 401);
         }
 
-        $otp = rand(100000, 999999);
+        
 
         $siteManager = SiteManager::create([
             'name' => $request->name,
             'email' => $request->email,
             'phoneNumber' => $request->phoneNumber,
-            'otp' => $otp,
             'phoneVerified'=> false,
         ]);
 
-        $message = "Your OTP is: " . $otp;
-        $this->sendSMS($request->phoneNumber, $message);
+        
+        $this->sendSMS($request->phoneNumber,$siteManager);
 
         $phoneNumber = substr($siteManager->phoneNumber, 0, 4) . "*****" . substr($siteManager->phoneNumber, 8, 2);
 
@@ -198,11 +197,40 @@ class AuthenticationController extends Controller
         ], 201);        
     }
 
+    public function forgotPassword(Request $request){
+        $request->validate([
+            'phoneNumber' => 'required|numeric',
+        ]);
 
-    public function sendSMS($phoneNumber, $message){
-        //TODO: add to env
+        $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)
+                        ->where('phoneVerified', true)
+                        ->first();
+
+        if(!$siteManager){
+            return response([
+                'message' => 'Invalid credentials',
+            ], 401);
+        }
+
+        $this->sendSMS($request->phoneNumber,$siteManager);
+        $phoneNumber = $request->phoneNumber;
+        $phoneNumber = substr($siteManager->phoneNumber, 0, 4) . "*****" . substr($siteManager->phoneNumber, 8, 2);
+        return response([
+            'message' => 'An OTP has been sent to ' . $phoneNumber . '',
+             
+        ], 201);
+    }
+
+
+    public function sendSMS($phoneNumber, $siteManager){
+
+        $otp = rand(100000, 999999);
+        $message = "Your OTP is: " . $otp;
+        $siteManager->otp = $otp;
+        $siteManager->save();
+
         $url = config('settings.smsUrl'); 
-        //TODO: log payload
+       
         $data = array(
             'notificationCode' =>config('settings.notificationCode'),
             'clientID' => 1,
@@ -225,7 +253,7 @@ class AuthenticationController extends Controller
         curl_setopt($ch, CURLOPT_TIMEOUT, 60);//set maximum time to wait for a response
         
         try {
-            $result = curl_exec($ch); //executes the cURL session
+             $result = curl_exec($ch); //executes the cURL session
             if (curl_errno($ch)) {
                 throw new \Exception(curl_error($ch));
             }
