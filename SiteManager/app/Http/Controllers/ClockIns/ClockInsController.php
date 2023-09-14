@@ -133,7 +133,7 @@ class ClockInsController extends Controller
             $clockIn->phoneNumber = $worker->phoneNumber;
             $clockIn->payRate = $worker->payRate;
             }
-            $option = 0;
+            
 
          if($searchQuery)
          {

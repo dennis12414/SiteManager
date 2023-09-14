@@ -29,14 +29,10 @@ class B2CCntroller extends Controller
             $siteManager = $this->findSiteManager($request->siteManagerId);
             $project = $this->findProject($request->projectId);
             $worker = $this->findWorker($request->workerId);
-            $clockIn = $this->findClockIn($request->projectId, $request->workerId,$request->date);
+            $clockIns = $this->findClockIn($request);
             $wallet = $this->findSiteManagerWallet($request->siteManagerId);
 
-            if ($clockIn->paymentStatus === 'paid') {
-                return response([
-                    'message' => 'Duplicate Payment',
-                ], 404);
-            }
+          
             //}elseif($clockIn->paymentStatus === 'Pending'){
                 // return response([
                  //    'message' => 'Payment already initiated',
@@ -47,7 +43,9 @@ class B2CCntroller extends Controller
             
             $wallet = $this->findSiteManagerWallet($request->siteManagerId);
 
-            if ($wallet->availableBalance < $worker->payRate) {
+            $totalPay = $worker->payRate * count($clockIns);
+
+            if ($wallet->availableBalance < $totalPay ) {
                 return response([
                     'message' => 'Insufficient funds in your wallet',
                 ], 404);
@@ -55,7 +53,7 @@ class B2CCntroller extends Controller
             
           
 
-            $workerDetails[] = ['name'=>$worker->name, 'phoneNumber' => $worker->phoneNumber, 'amount' => $worker->payRate];
+            $workerDetails[] = ['name'=>$worker->name, 'phoneNumber' => $worker->phoneNumber, 'amount' => $totalPay ];
             $uniqueId = Str::uuid()->toString();
 
             //initiate payment 
@@ -70,7 +68,8 @@ class B2CCntroller extends Controller
                     $transactionID = $result->data->transactionID;
                     $message = $result->data->message;
                     $statusCode = $result->data->statusCode;
-
+                    
+                foreach($clockIns as $clockIn){
                     Transactions::create([
                         'payType' => 'pay',
                         'statusCode' => $statusCode,
@@ -80,30 +79,38 @@ class B2CCntroller extends Controller
                         'workerId' => $request->workerId,
                         'projectId' => $request->projectId,
                         'siteManagerId' => $request->siteManagerId,
-                        'workDate' => $request->date,
+                        'workDate' => $clockIn->clockInTime,
                         'payRate' => $worker->payRate,
                         'transactionAmount' => $worker->payRate,
                         'transactionStatus' => 'Pending',
                     ]);
-
-                    //update held balance and available balance 
-                    $wallet->availableBalance -= $worker->payRate;
-                    $wallet->heldBalance += $worker->payRate;
-                    $wallet->save();
-    
+                    
                     //update payment status as processing
                     $clockIn->paymentStatus = 'Pending';
                     $clockIn->save();
 
-                    $a = config('settings.callbackUrl') . '/api/callback';
+                }
+                    
+
+                    //update held balance and available balance 
+                    $wallet->availableBalance -= $totalPay;
+                    $wallet->heldBalance += $totalPay;
+                    $wallet->save();
+    
+                    
+
 
                     return response([
                         'message' => $message,
+                        'clockins' => $clockIns,
+                        'daysworked' => count($clockIns),
+                        'totalPay' => $totalPay,
                         'payerTransactionID'=> $payerTransactionID, 
                     ], 200);
     
                 }else{
                     $message = $result->message;
+                    foreach($clockIns as $clockIn){
                     Transactions::create([
                         'payType' => 'pay',
                         'statusCode' => '400',
@@ -112,11 +119,12 @@ class B2CCntroller extends Controller
                         'workerId' => $request->workerId,
                         'projectId' => $request->projectId,
                         'siteManagerId' => $request->siteManagerId,
-                        'workDate' => $request->date,
+                        'workDate' => $clockIn->clockInTime,
                         'payRate' => $worker->payRate,
                         'transactionAmount' => $worker->payRate,
                         'transactionStatus' => 'Failed',
                     ]);
+                 }
 
                     return response([
                         'message' => $message,
@@ -157,13 +165,11 @@ class B2CCntroller extends Controller
             $name = $payment['name'];
         }
 
-        // $uniqueId = Str::uuid()->toString();
-
         $paymentDetails = [
             'customerName' => $name,
             'msisdn' => $phoneNumber,
             'accountNumber' => $phoneNumber,
-            'amount' => 1,
+            'amount' => $amount,
             'payerNarration' => config('settings.payerNarration'),
             'partnerTransactionID' => $uniqueId,
             'paymentType' => config('settings.paymentType'),
@@ -216,7 +222,8 @@ class B2CCntroller extends Controller
             'siteManagerId' => 'required|numeric',
             'projectId' => 'required|numeric',
             'workerId' => 'required|numeric',
-            'date' => 'required|date',
+            'startDate' => 'required|date',
+            'endDate' => 'nullable|date',
         ]);
 
     }
@@ -224,7 +231,7 @@ class B2CCntroller extends Controller
     private function findSiteManager($id)
     {
         $siteManager = SiteManager::where('siteManagerId',$id)
-        //->where('phoneVerified', true)
+        ->where('phoneVerified', true)
         ->first();
 
         if (!$siteManager) {
@@ -256,18 +263,34 @@ class B2CCntroller extends Controller
         return $worker;
     }
 
-    private function findClockIn($projectId, $workerId, $date)
+    private function findClockIn($request)
     {
-        $clockIn = ClockIns::where('projectId', $projectId)
-                            ->where('workerId', $workerId)
-                            ->where('clockInTime', $date)
-                            ->first();
 
-        if (!$clockIn) {
-           abort(400, 'Not clocked in!');
+        $query = ClockIns::where('projectId', $request->projectId)
+                    ->where('workerId', $request->workerId)
+                    ->when($request->endDate == null, function ($query) use ($request) {
+                        return $query->whereDate('clockInTime', $request->startDate);
+                    })
+                    ->when($request->endDate, function ($query) use ($request) {
+                        return $query->whereBetween('clockInTime', [$request->startDate, $request->endDate])
+                               ->where('paymentStatus', '!=', 'paid');
+                    });
+
+        $clockIns = $query->get();
+        
+        if (count($clockIns) == 0) {
+            abort(400, 'Not clocked in!');
         }
-
-        return $clockIn;
+        if($request->endDate == null){
+            foreach($clockIns as $clockIn){
+                if ($clockIn->paymentStatus === 'paid') {
+                    abort(404, 'Already paid!');
+                }
+            }
+            return $clockIns;
+        }else{
+            return $clockIns;
+        }
     }
 
     private function findSiteManagerWallet($id)
@@ -311,6 +334,7 @@ class B2CCntroller extends Controller
     }
 
     public function getPaymentStatus(string $payerTransactionID){
+
         $paymentDetails = Transactions::where('payerTransactionID',$payerTransactionID)->first();
         if(!$paymentDetails){
             return response(['message'=>'Payment was not initiated (partnerReferenceID not found)'],400);
@@ -325,8 +349,6 @@ class B2CCntroller extends Controller
             'receiptNumber' => $paymentDetails->receiptNumber,
             'statusCode' => $paymentDetails->statusCode,
         ],200);
-
-
     }
 
 

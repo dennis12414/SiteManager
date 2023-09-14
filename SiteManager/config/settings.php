@@ -40,6 +40,7 @@ return [
     'serviceCode' => env('SERVICE_CODE','MPESAB2C'),
     'currencyCode' => env('CURRENCY','KES'),
     'callbackUrl' => env('CALLBACK_URL','http://172.105.90.112/site-manager-backend/SiteManager'),
+    
 
 
     /**

@@ -35,26 +35,30 @@ class B2CResponse extends Controller
 
             // Check if payment has already been processed
             $paymentDetails = $this->getPaymentDetails($payerTransactionID);
-
-            // Get payment rate, site manager wallet, and clock in details
-            $payRate = $paymentDetails->payRate;
-
-            $wallet = $this->getWallet($paymentDetails->siteManagerId);
-            $clockIn = $this->getClockInDetails($paymentDetails->projectId, $paymentDetails->workerId, $paymentDetails->workDate);
+            $clockIns = $this->getClockInDetails($paymentDetails);
+            $payRate = $paymentDetails[0]->payRate;
+            $totalPay = $payRate * count($clockIns);
+            $wallet = $this->getWallet($paymentDetails[0]->siteManagerId);
+            
 
             // Update wallet and clock in details based on payment status
             if ($statusCode === "00") {
                 $transactionStatus = "Success";
-                $this->updateWalletAndClockInSuccess($wallet, $clockIn, $payRate);
-                $this->updatePaymentDetails($paymentDetails, $statusCode, $message, $providerNarration, $receiptNumber, $transactionID, $transactionStatus);
+                $this->updateWalletAndClockInSuccess($wallet, $clockIns,$payRate, $totalPay);
+                $this->updatePaymentDetails($paymentDetails, $statusCode, $message,  $receiptNumber, $transactionID, $transactionStatus);
+               
             }else{
                 $transactionStatus = "Failed";
-                $this->updateWalletAndClockInFail($wallet, $clockIn, $payRate);
-                $this->updatePaymentDetails($paymentDetails, $statusCode, $message, $providerNarration, $receiptNumber, $transactionID, $transactionStatus);
+                $this->updateWalletAndClockInFail($wallet, $clockIns, $totalPay);
+                
             }
 
             // Return success response
             return response([
+                'payRate' => $payRate,
+                'totalPay' => $totalPay,
+                'clockIns' => $clockIns,
+                'count' => count($clockIns),
                 'message' => 'Payment processed successfully',
             ], 200);
 
@@ -67,62 +71,84 @@ class B2CResponse extends Controller
         }
     }
 
-    private function updateWalletAndClockInSuccess($wallet, $clockIn, $payRate)
+    private function updateWalletAndClockInSuccess($wallet, $clockIn, $payRate, $totalPay)
     {
         // Update the wallet
-        $wallet->heldBalance -= $payRate;
-        $wallet->balance -= $payRate;
+        $wallet->heldBalance -= $totalPay;
+        $wallet->balance -= $totalPay;
         $wallet->save();
 
         // Update the clock in details
-        $clockIn->paymentStatus = 'paid';
-        $clockIn->amountPaid = $payRate;
-        $clockIn->save();
+        foreach($clockIn as $clockIn){
+            $clockIn->paymentStatus = 'paid';
+            $clockIn->amountPaid = $payRate;
+            $clockIn->save();
+        }
     }
 
-    private function updatePaymentDetails($paymentDetails, $statusCode, $message, $providerNarration, $receiptNumber, $transactionID,$transactionStatus)
-    {
-        // Update the payment details
-        $paymentDetails->statusCode = $statusCode;
-        $paymentDetails->message = $message;
-        $paymentDetails->receiptNumber = $receiptNumber;
-        $paymentDetails->transactionID = $transactionID;
-        $paymentDetails->transactionStatus = $transactionStatus;
-        $paymentDetails->save();
-    }
-
-    private function updateWalletAndClockInFail($wallet, $clockIn, $payRate)
+    private function updateWalletAndClockInFail($wallet, $clockIn, $totalPay)
     {
         // Update the wallet
-        $clockIn->paymentStatus = 'failed';
-        $clockIn->save();
-
-        $wallet->availableBalance += $payRate;
-        $wallet->heldBalance -= $payRate;
+        $wallet->availableBalance += $totalPay;
+        $wallet->heldBalance -= $totalPay;
         $wallet->save();
+
+         // Update the clock in details
+        foreach($clockIn as $clockIn){
+            $clockIn->paymentStatus = 'failed';
+            $clockIn->save();
+        }
+
+
     }
 
+    private function updatePaymentDetails($paymentDetails, $statusCode, $message, $receiptNumber, $transactionID, $transactionStatus)
+    {
+        // Update the payment details
+        foreach($paymentDetails as $paymentDetail){
+            $paymentDetail->statusCode = $statusCode;
+            $paymentDetail->message = $message;
+            $paymentDetail->receiptNumber = $receiptNumber;
+            $paymentDetail->transactionID = $transactionID;
+            $paymentDetail->transactionStatus = $transactionStatus;
+            $paymentDetail->save();
+        }
+        
+       
+    }
+
+   
+
     private function getPaymentDetails($payerTransactionID){
-        $paymentDetails = Transactions::where('payerTransactionID', $payerTransactionID)->first();
-        if (!$paymentDetails) {
+        $paymentDetails = Transactions::where('payerTransactionID', $payerTransactionID)->get();
+        if (count($paymentDetails) == 0) {
             abort(400, 'Payment was not initiated');
         }
 
-        if ($paymentDetails->statusCode === '00') {
-            abort(200, 'Payment already processed');
-        }
+        // if ($paymentDetails->statusCode === '00') {
+        //     abort(200, 'Payment already processed');
+        // }
         return $paymentDetails;
     }
 
-    private function getClockInDetails($projectId, $workerId, $workDate){
-        $clockIn = ClockIns::where('projectId', $projectId)
-            ->where('workerId', $workerId)
-            ->where('clockInTime', $workDate)
-            ->first();
-        if(!$clockIn){
+    private function getClockInDetails($paymentDetails){
+        $clockInDates = $paymentDetails->pluck('workDate');
+        $projectId = $paymentDetails[0]->projectId;
+        $siteManagerId = $paymentDetails[0]->siteManagerId;
+        $workerId = $paymentDetails[0]->workerId;
+
+        $clockIns = ClockIns::whereIn('clockInTime', $clockInDates)
+                    ->where('projectId', $projectId)
+                    ->where('siteManagerId', $siteManagerId)
+                    ->where('workerId', $workerId)
+                    ->get();
+
+        if(count($clockIns) == 0){
             abort(400, 'Clock in details not found');
+            
         }
-        return $clockIn;
+
+        return $clockIns;
     }
 
     private function getWallet($siteManagerId){

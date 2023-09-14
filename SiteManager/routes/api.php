@@ -72,6 +72,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/walletLoadingStatus/{partnerReferenceID}', [C2BController::class, 'getPaymentStatus']);
     Route::get('/paymentStatus/{payerTransactionID}', [B2CCntroller::class, 'getPaymentStatus']);
     Route::get('/transactionHistory/{phoneNumber}', [WalletController::class, 'getTransactionHistory']);
+    
 });
    
 

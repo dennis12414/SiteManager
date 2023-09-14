@@ -152,6 +152,7 @@ class AuthenticationController extends Controller
         //TODO: configure it in env
         date_default_timezone_set('Africa/Nairobi');
         $time = date('Y-m-d H:i:s');
+        
         //set password
         $siteManager->password = Hash::make($request->password);
         $siteManager->save();
