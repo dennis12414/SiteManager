@@ -144,7 +144,7 @@ class ReportController extends Controller
     }
 
     //individual worker report
-    public function generateWorkerReport(String $workerId,  string $startDate = null, string $endDate = null,string $date = null){
+    public function generateWorkerReport(String $workerId,String $projectId,  string $startDate = null, string $endDate = null){
         $startDate = request('startDate');
         $endDate = request('endDate');
       
@@ -159,14 +159,18 @@ class ReportController extends Controller
             $startDate = $startDate . ' 00:00:00';
             $endDate = $endDate . ' 23:59:59';
             $clockIns = ClockIns::where('workerId', $workerId)
+                        ->where('projectId', $projectId)
                         ->whereBetween('date', [$startDate, $endDate])
                         ->get();
         }elseif($startDate){
             $clockIns = ClockIns::where('workerId', $workerId)
+                        ->where('projectId', $projectId)
                         ->where('date', [$startDate . ' 00:00:00', $startDate . ' 23:59:59'])
                         ->get();
         }else{
-            $clockIns = ClockIns::where('workerId', $workerId)->get();
+            $clockIns = ClockIns::where('workerId', $workerId)
+                ->where('projectId', $projectId)
+                ->get();
         }
 
         if(!$clockIns){

@@ -61,7 +61,7 @@ Route::middleware('auth:api')->group(function () {
 
 
     Route::Get('/report/{projectId}',[ReportController::class, 'generateReport']);
-    Route::Get('/workerReport/{workerId}',[ReportController::class, 'generateWorkerReport']);
+    Route::Get('/workerReport/{workerId}/{projectId}',[ReportController::class, 'generateWorkerReport']);
 
     Route::Get('/siteManager',[SiteManagerController::class, 'index']);//show workers
     Route::delete('/siteManager/archive/{siteManagerId}',[SiteManagerController::class , 'destroy']);//create worker
