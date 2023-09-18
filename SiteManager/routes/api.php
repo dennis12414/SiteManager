@@ -38,7 +38,7 @@ Route::post('confirmation', [C2BResponse::class, 'confirmation']);
 
 
 
-Route::middleware('auth:api')->group(function () { 
+//Route::middleware('auth:api')->group(function () { 
 
     Route::post('/logout', [AuthenticationController::class, 'logout']);
 
@@ -73,7 +73,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/paymentStatus/{payerTransactionID}', [B2CCntroller::class, 'getPaymentStatus']);
     Route::get('/transactionHistory/{phoneNumber}', [WalletController::class, 'getTransactionHistory']);
     
-});
+//});
    
 
 

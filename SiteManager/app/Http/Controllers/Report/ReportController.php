@@ -108,91 +108,93 @@ class ReportController extends Controller
     }
 
     //individual worker report
-    public function generateWorkerReport(String $workerId,String $projectId,  string $startDate = null, string $endDate = null){
-        $startDate = request('startDate');
-        $endDate = request('endDate');
-      
-        $worker = Worker::where('workerId', $workerId)->first();
-        if(!$worker){
-            return response([
-                'message' => 'Worker does not exist',
-            ], 404);
-        }
+	public function generateWorkerReport(String $workerId, String $projectId, string $startDate = null, string $endDate = null)
+	{
+	    $worker = Worker::where('workerId', $workerId)->first();
+	    
+	    if (!$worker) {
+		return response([
+		    'message' => 'Worker does not exist',
+		], 404);
+	    }
+	    
+	    $clockIns = $this->getClockIns($workerId, $projectId, $startDate, $endDate);
+	    
+	    if (!$clockIns->isEmpty()) {
+		$workerDetails = $this->getWorkerDetails($worker);
+		$workerData = $this->getWorkerData($clockIns, $worker);
+		$totalWages = $this->getTotalWages($clockIns, $worker);
 
-        if($startDate && $endDate){
-            $startDate = $startDate . ' 00:00:00';
-            $endDate = $endDate . ' 23:59:59';
-            $clockIns = ClockIns::where('workerId', $workerId)
-                        ->where('projectId', $projectId)
-                        ->whereBetween('date', [$startDate, $endDate])
-                        ->get();
-        }elseif($startDate){
-            $clockIns = ClockIns::where('workerId', $workerId)
-                        ->where('projectId', $projectId)
-                        ->where('date', [$startDate . ' 00:00:00', $startDate . ' 23:59:59'])
-                        ->get();
-        }else{
-            $clockIns = ClockIns::where('workerId', $workerId)
-                ->where('projectId', $projectId)
-                ->get();
-        }
+		return response([
+		    'worker details' => $workerDetails,
+		    'days worked' => $workerData,
+		    'totalBalance' => $totalWages,
+		], 200);
+	    }
 
-        if(!$clockIns){
-            return response([
-                'message' => 'No clock ins for this worker',
-            ], 404);
-        }
+	    return response([
+		'message' => 'No clock ins for this worker',
+	    ], 404);
+	}
 
-        //total days worked
-        $totalDaysWorked = 0;
-        $amountPaid = 0;
-        $totalPaymentAmount = 0;
-        $totalWages = 0;
+	private function getClockIns($workerId, $projectId, $startDate, $endDate)
+	{
+	    $query = ClockIns::where('workerId', $workerId)
+		->where('projectId', $projectId);
 
-        foreach($clockIns as $clockIn){
-            if($clockIn->clockInTime !== null){
-                $totalDaysWorked++;
-                $amountPaid += $worker->amountPaid;
-                //$totalWages += $worker->payRate;
-                
-                if($clockIn->amountPaid !== null){
-                    $totalPaymentAmount == $clockIn->amountPaid;
-                }
-                $workerDetails = [
-                    'name' => $worker->name,
-                    'phoneNumber' => $worker->phoneNumber,
-                    'payRate' => $worker->payRate,
-                    'dateRegistered' => date('d-m-Y', strtotime($worker->dateRegistered)),
-                ];
+	    if ($startDate && $endDate) {
+		$query->whereBetween('date', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+	    } elseif ($startDate) {
+		$query->where('date', [$startDate . ' 00:00:00', $startDate . ' 23:59:59']);
+	    }
 
-                $clockInTime[] = [
-                    'clockInTime' => $clockIn->clockInTime,
-                    'date' => $clockIn->date,
-                ];
-            
-        
-            $totalWages += $worker->payRate;
-            $workerData [] = [
-                'date' => $clockIn->date,
-                'totalPaidAmount' =>  $totalPaymentAmount,
-                'balance' => $worker->payRate - $clockIn->amountPaid,
-            ];
-         }
-        }
-        //personal details
-        // $worker = [
-        //     'name' => $worker->name,
-        //     'phoneNumber' => $worker->phoneNumber,
-        //     'payRate' => $worker->payRate,
-        //     'dateRegistered' => date('d-m-Y', strtotime($worker->dateRegistered)),
-        // ];
+	    return $query->get();
+	}
 
-            return response([
-                'worker details' => $workerDetails,
-                'days worked' => $workerData,
-                'totalBalance' => $totalWages ,
-            ], 200);
-        
-    }
+	private function getWorkerDetails($worker)
+	{
+	    return [
+		'name' => $worker->name,
+		'phoneNumber' => $worker->phoneNumber,
+		'payRate' => $worker->payRate,
+		'dateRegistered' => date('d-m-Y', strtotime($worker->dateRegistered)),
+	    ];
+	}
+
+	private function getWorkerData($clockIns, $worker)
+	{
+	    $workerData = [];
+	    $totalPaymentAmount = 0;
+	    $totalWages = 0;
+
+	    foreach ($clockIns as $clockIn) {
+		if ($clockIn->clockInTime !== null) {
+		    $totalPaymentAmount += $clockIn->amountPaid;
+		    $totalWages += $worker->payRate;
+
+		    $workerData[] = [
+		        'date' => $clockIn->date,
+		        'totalPaidAmount' => $totalPaymentAmount,
+		        'balance' => $worker->payRate - $clockIn->amountPaid,
+		    ];
+		}
+	    }
+
+	    return $workerData;
+	}
+
+	private function getTotalWages($clockIns, $worker)
+	{
+	    $totalWages = 0;
+
+	    foreach ($clockIns as $clockIn) {
+		if ($clockIn->clockInTime !== null) {
+		    $totalWages += $worker->payRate;
+		}
+	    }
+
+	    return $totalWages;
+	}
+
 
 }
