@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Project;
 
 use App\Http\Controllers\Controller;
 use App\Models\Project;
+use App\Models\Setting;
 use App\Models\SiteManager;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 
 class ProjectController extends Controller
@@ -22,8 +24,11 @@ class ProjectController extends Controller
             'projectDescription' => 'required|string',
             'startDate' => 'required|date',
             'endDate' => 'required|date',
+            'progress' => 'required|Integer',
+            'status' => 'required|string',
+            'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
-        
+
         //check if site manager exists
         $siteManager = SiteManager::where('siteManagerId', $request->siteManagerId)->first();
         if (!$siteManager) {
@@ -31,20 +36,72 @@ class ProjectController extends Controller
                 'message' => 'Site Manager does not exist',
             ], 404);
         }
+    
 
-        //create project
-        $project = Project::create([
-            'siteManagerId' => $request->siteManagerId,
-            'projectName' => $request->projectName,
-            'projectDescription' => $request->projectDescription,
-            'startDate' => $request->startDate,
-            'endDate' => $request->endDate,
-        ]);
+        if($request->file('image') != null){
+            $uuid = Str::uuid();
 
-      
-        return response([
-            'message' => 'Project created successfully',
-        ], 201);
+            $imageFolderPath = Setting::where('setting_key', 'image_folder_path')->first();
+            if (!$imageFolderPath) {
+                return response([
+                    'ty' => $imageFolderPath,
+                    'message' => 'Image folder path not found in settings',
+                ], 500);
+            }
+    
+                
+            $uploadedImage = $request->file('image');
+    
+                
+            $imageName = $uuid . '_' . $uploadedImage->getClientOriginalName();
+    
+                
+            $uploadedImage->storeAs($imageFolderPath, $imageName);
+    
+            
+            $project = Project::create([
+                'siteManagerId' => $request->siteManagerId,
+                'projectName' => $request->projectName,
+                'projectDescription' => $request->projectDescription,
+                'startDate' => $request->startDate,
+                'endDate' => $request->endDate,
+                'status' => $request->status,
+                'progress' => $request->progress,
+                'image' => $imageName,
+            ]);
+    
+    
+            $domain = Setting::where('setting_key', 'domain')->value('value');
+    
+            $project->image = $domain . '/' .$imageFolderPath. '/' . $project->image_name;
+    
+            return response([
+                'message' => 'Project created successfully',
+                'project'=> $project
+            ], 201);
+
+
+        }else{
+            $project = Project::create([
+                'siteManagerId' => $request->siteManagerId,
+                'projectName' => $request->projectName,
+                'projectDescription' => $request->projectDescription,
+                'startDate' => $request->startDate,
+                'endDate' => $request->endDate,
+                'status' => $request->status,
+                'progress' => $request->progress,
+                'image' => null,
+            ]);
+
+            return response([
+                'message' => 'Project created successfully',
+                'project'=> $project
+            ], 201);
+        }
+        
+    
+    
+
     
     }
 
@@ -65,7 +122,7 @@ class ProjectController extends Controller
         return response([
             'message' => 'Retrieved successfully',
             'project' => $projects->map(function($project){
-                return $project->only(['projectId','siteManagerId','projectName', 'projectDescription', 'startDate', 'endDate']);
+                return $project->only(['projectId','siteManagerId','projectName', 'projectDescription', 'startDate', 'endDate','progress','status','image']);
             })
         ], 200);
         

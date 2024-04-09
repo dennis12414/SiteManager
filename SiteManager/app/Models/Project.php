@@ -25,12 +25,24 @@ class Project extends Model
         'startDate',
         'endDate',
         'siteManagerId',
-
+        'progress',
+        'status',
+        'image',
     ];
     
     public function siteManager()
     {
         return $this->belongsTo(SiteManager::class, 'siteManagerId');
+    }
+
+    public function workers()
+    {
+        return $this->belongsToMany(Worker::class);
+    }
+
+    public function tasks()
+    {
+        return $this->hasMany(Task::class);
     }
 
 

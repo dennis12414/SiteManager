@@ -21,7 +21,7 @@ class ClockInsController extends Controller
     ]);
 
     //check if worker is already clocked in
-    $clockIn = ClockIns::where('workerId', $request->workerId)
+    $clockIn = ClockIns::where('workerId', $request->workerId )
                 ->where('projectId', $request->projectId)
                 ->where('clockInTime', $request->clockInTime)
                 ->first();
@@ -40,16 +40,39 @@ class ClockInsController extends Controller
         'workerId' => $request->workerId,
         'clockInTime' => $request->clockInTime,
         'date' => $date,
+        'amountPaid' => null,
+        'paymentStatus' => 'pending',
     ]);
+
+    $createdClockIn = ClockIns::find($clockIn->clockId);
+
+    $worker = Worker::where('workerId', $request->workerId)->first();
+    
+    $responseData = [
+        'workerId' => $worker->workerId,
+        'name' => $worker->name,
+        'phoneNumber' => $worker->phoneNumber,
+        'dateRegistered' => $worker->dateRegistered,
+        'payRate' => $worker->payRate,
+        'siteManagerId' => $worker->siteManagerId,
+        'role' => $worker->role,
+        'gender' => $worker->gender,
+        'profilePic' => $worker->profilePic,
+        'data' => $request->clockInTime,
+        'clockIns' => [$createdClockIn], 
+    ];
 
    
     return response([
         'message' => 'Clocked in successfully',
+        'data'=>$responseData,
     ], 201); 
 
-
-    
    }
+
+
+
+
 
    public function clockedInWorkers(Request $request){
     $request->validate([
@@ -87,14 +110,64 @@ class ClockInsController extends Controller
         ], 404); 
     }
 
-    
 
     return response([
         'message' => 'Workers clocked in',
         'clockIns' => $clockIns,
     ], 200);
 
-   }  
+   } 
+
+
+
+   public function clockednotClocked(string $siteManagerId, string $projectId, string $startDate = null)
+   {
+        $startDate = request('startDate');
+       
+           
+        $workers = Worker::where('siteManagerId', $siteManagerId)->get();
+        $data = [];
+        foreach ($workers as $worker) {
+            $workerData = $worker->toArray(); // Convert worker object to array
+        
+            // Separate query to fetch clock-in details (if applicable)
+            $clockInData = ClockIns::where('workerId', $worker->workerId)
+                                    ->where('date', $startDate)
+                                    ->where('projectId', $projectId)
+                                    ->first();
+        
+            if ($clockInData) {
+                $workerData['date'] = $clockInData->date;
+                $workerData['clockInTime'] = $clockInData->clockInTime;
+            } else {
+                $workerData['date'] = null;
+                $workerData['clockInTime'] = null;
+            }
+        
+            // Remove unnecessary timestamps
+            unset($workerData['created_at']);
+            unset($workerData['updated_at']);
+            unset($workerData['deleted_at']); 
+        
+            $workerData['clockIns'] = []; // Initialize empty clockIns array
+        
+            // Check if clockInData exists and add details if necessary
+            if ($clockInData) {
+                $workerData['clockIns'][] = $clockInData->toArray(); // Add clockIn details as array
+            }
+        
+            $data[] = $workerData;
+        }
+        
+        //return json_encode($data);
+        return response([
+            'message' => 'fetched',
+            'data'=>$data
+        ], 200); 
+
+
+   }
+
    
    public function clockedInWorker(string $siteManagerId, string $projectId, string $startDate = null, string $endDate = null, string $searchQuery = null)
    {
@@ -154,31 +227,7 @@ class ClockInsController extends Controller
 
 
 }
-        // $transaction = $mpesaResponse['Body']['stkCallback']['CallbackMetadata']['Item'];
-        // $amount = $transaction[0]['Value'];
-        // $mpesaReceiptNumber = $transaction[1]['Value'];
-        // $transactionDate = $transaction[3]['Value'];
-        // $phoneNumber = $transaction[4]['Value'];
-        // $merchantRequestID = $transaction[5]['Value'];
-        // $checkoutRequestID = $transaction[6]['Value'];
-        // $resultCode = $transaction[7]['Value'];
-        // $resultDesc = $transaction[8]['Value'];
-
-        // $mpesaResponse = [
-        //     'amount' => $amount,
-        //     'mpesaReceiptNumber' => $mpesaReceiptNumber,
-        //     'transactionDate' => $transactionDate,
-        //     'phoneNumber' => $phoneNumber,
-        //     'merchantRequestID' => $merchantRequestID,
-        //     'checkoutRequestID' => $checkoutRequestID,
-        //     'resultCode' => $resultCode,
-        //     'resultDesc' => $resultDesc,
-        // ];
-
-        // return response([
-        //     'message' => 'Mpesa response received',
-        //     'mpesaResponse' => $mpesaResponse,
-        // ], 200);
+      
 
 }
    

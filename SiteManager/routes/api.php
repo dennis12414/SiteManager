@@ -11,6 +11,7 @@ use App\Http\Controllers\PAYMENT\B2C\B2CResponse;
 use App\Http\Controllers\PAYMENT\C2B\C2BController;
 use App\Http\Controllers\PAYMENT\C2B\C2BResponse;
 use App\Http\Controllers\Wallet\WalletController;
+use App\Http\Controllers\TaskController;
 use Illuminate\Support\Facades\Route; 
 
 /*
@@ -33,7 +34,7 @@ Route::post('/forgotPassword', [AuthenticationController::class, 'forgotPassword
 
 Route::post('/payWorker', [B2CCntroller::class, 'initiatePayment']);
 Route::post('callback', [B2CResponse::class, 'b2CResponse']);
-Route::post('/b2c/timeout', [MPESAController::class, 'timeout'])->name('b2c.timeout');
+//Route::post('/b2c/timeout', [MPESAController::class, 'timeout'])->name('b2c.timeout');
 Route::post('confirmation', [C2BResponse::class, 'confirmation']);
 
 
@@ -41,6 +42,13 @@ Route::post('confirmation', [C2BResponse::class, 'confirmation']);
 //Route::middleware('auth:api')->group(function () { 
 
     Route::post('/logout', [AuthenticationController::class, 'logout']);
+
+
+    Route::Get('/task/{projectId}', [TaskController::class, 'show']);
+    Route::Get('/task/status/{projectId}', [TaskController::class, 'taskStatusCounts']);
+    Route::post('/task/create', [TaskController::class, 'store']);
+    Route::put('/task/{taskId}/update', [TaskController::class, 'update']);
+    
 
     Route::Get('/projects/{siteManagerId}', [ProjectController::class, 'show']);//show projects
     Route::post('/projects', [ProjectController::class, 'store']);//create project
@@ -54,6 +62,8 @@ Route::post('confirmation', [C2BResponse::class, 'confirmation']);
     Route::put('/workers/update/{workerId}',[WorkerController::class, 'update']);//update worker
     Route::delete('/workers/archive/{workerId}',[WorkerController::class, 'archive']);//archive worker
 
+   
+    Route::get('/clockInss/{id}/{pId}',[ClockInsController::class, 'clockednotClocked']);
     Route::post('/clockIn',[ClockInsController::class, 'clockIn']);//clock in
     Route::get('/clockedInWorker/{siteManagerId}/{projectId}',[ClockInsController::class, 'clockedInWorker']);
 

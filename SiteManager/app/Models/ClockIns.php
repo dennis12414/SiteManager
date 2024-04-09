@@ -19,5 +19,7 @@ class ClockIns extends Model
         'clockInTime',
         'clockOutTime',
         'date',
+        'amountPaid',
+        'paymentStatus',
     ];
 }

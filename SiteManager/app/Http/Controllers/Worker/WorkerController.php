@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\SiteManager;
 use App\Models\Worker;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use App\Models\Setting;
+
 //use carbon
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -26,6 +29,9 @@ class WorkerController extends Controller
             'dateRegistered' => 'required|date',
             'payRate' => 'required|numeric',
             'siteManagerId' => 'required|numeric',
+            'role' => 'required|string',
+            'gender' => 'required|string',
+            'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $existingWorker = Worker::where('phoneNumber', $request->phoneNumber)
@@ -44,18 +50,73 @@ class WorkerController extends Controller
             ], 404);
         }
 
-        $worker = Worker::create([
-            'name' => $request->name,
-            'phoneNumber' => $request->phoneNumber,
-            'dateRegistered' => $request->dateRegistered,
-            'payRate' => $request->payRate,
-            'siteManagerId' => $request->siteManagerId,
-        ]);
 
-        return response([
-            'message' => 'Worker created successfully',
-            'worker' => $worker->only(['workerId', 'name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']),
-        ], 201);
+
+        if($request->file('image') != null){
+            $uuid = Str::uuid();
+
+            $imageFolderPath = Setting::where('setting_key', 'image_folder_path')->first();
+            if (!$imageFolderPath) {
+                return response([
+                    'ty' => $imageFolderPath,
+                    'message' => 'Image folder path not found in settings',
+                ], 500);
+            }
+            $uploadedImage = $request->file('image');
+                
+            $imageName = $uuid . '_' . $uploadedImage->getClientOriginalName();
+                
+            $uploadedImage->storeAs($imageFolderPath, $imageName);
+
+            $worker = Worker::create([
+                'name' => $request->name,
+                'phoneNumber' => $request->phoneNumber,
+                'dateRegistered' => $request->dateRegistered,
+                'payRate' => $request->payRate,
+                'siteManagerId' => $request->siteManagerId,
+                'role' => $request->role,
+                'gender' => $request->gender,
+                'profilePic' => $imageName,
+            ]);
+
+            $domain = Setting::where('setting_key', 'domain')->value('value');
+    
+            $worker->profilePic = $domain . '/' .$imageFolderPath. '/' . $worker->profilePic;
+    
+            return response([
+                'message' => 'Worker created successfully',
+                'worker' => $worker->only(['workerId', 
+                'name', 'phoneNumber', 'payRate',
+                 'dateRegistered', 'siteManagerId',   
+                'role',
+                'gender',
+                'profilePic',]),
+            ], 201);
+        }else{
+            $worker = Worker::create([
+                'name' => $request->name,
+                'phoneNumber' => $request->phoneNumber,
+                'dateRegistered' => $request->dateRegistered,
+                'payRate' => $request->payRate,
+                'siteManagerId' => $request->siteManagerId,
+                'role' => $request->role,
+                'gender' => $request->gender,
+                'profilePic' => null,
+            ]);
+
+            return response([
+                'message' => 'Worker created successfully',
+                'worker' => $worker->only(['workerId', 
+                'name', 'phoneNumber', 'payRate',
+                 'dateRegistered', 'siteManagerId',   
+                'role',
+                'gender',
+                'profilePic',]),
+            ], 201);
+
+        }
+    
+            
     }
 
     /**
@@ -75,10 +136,17 @@ class WorkerController extends Controller
             ], 404);
         }
 
+        // $domain = Setting::where('setting_key', 'domain')->value('value');
+        // $imageFolderPath = Setting::where('setting_key', 'image_folder_path')->first();
+        // $workers->profilePic = $domain . '/' .$imageFolderPath. '/' . $workers->profilePic;
+        
+
         return response([
             'message' => 'Retrieved successfully',
             'workers' => $workers->map(function($worker){
-                return $worker->only(['workerId','name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']);
+            
+                return $worker->only(['workerId','name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId', 'role',
+                'gender','profilePic',]);
             })
         ], 200);
         
@@ -127,7 +195,8 @@ class WorkerController extends Controller
         return response([
             'message' => 'Retrieved successfully',
             'workers' => $workers->map(function($worker){
-                return $worker->only(['workerId','name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']);
+                return $worker->only(['workerId','name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId',    'role','gender',
+                'profilePic',]);
             })
         ], 200);
 
@@ -156,7 +225,9 @@ class WorkerController extends Controller
 
         return response([
             'message' => 'Worker updated successfully',
-            'worker' => $worker->only(['workerId','name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId']),
+            'worker' => $worker->only(['workerId','name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId',     'role',
+            'gender',
+            'profilePic',]),
         ], 200);
 
     }

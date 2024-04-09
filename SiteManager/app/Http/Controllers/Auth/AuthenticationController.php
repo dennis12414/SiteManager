@@ -19,9 +19,11 @@ class AuthenticationController extends Controller
 {
     public function register(Request $request){
         $request->validate([
-            'name' => 'required|string',
-            'email' => 'email',
-            'phoneNumber' => 'required|numeric',
+            'firstName' => 'required|string|max:255',
+            'lastName' => 'required|string|max:255',
+            'email' => 'email|unique:siteManagers',
+            'phoneNumber' => 'required|numeric|unique:siteManagers',
+            'profilePicture' => 'string',
         ]);
 
         //TODO: add to env file
@@ -59,10 +61,10 @@ class AuthenticationController extends Controller
             ], 401);
         }
 
-        
+        $name = $request->firstName.' '.$request->lastName;
 
         $siteManager = SiteManager::create([
-            'name' => $request->name,
+            'name' => $name,
             'email' => $request->email,
             'phoneNumber' => $request->phoneNumber,
             'phoneVerified'=> false,
@@ -83,23 +85,23 @@ class AuthenticationController extends Controller
     
     public function verify(Request $request){
         $request->validate([
-            'phoneNumber' => 'required|numeric',
-            'otp' => 'required|digits:6',
+            'phoneNumber' => 'required|string',
+            'otp' => 'required|digits:4',
         ]);
 
         //TODO: add to env
-        $dummyPhoneNumber = config('settings.dummyPhoneNumber');
-        $dummyOTP = config('settings.dummyOTP');
+        // $dummyPhoneNumber = config('settings.dummyPhoneNumber');
+        // $dummyOTP = config('settings.dummyOTP');
 
         //if dummy phone number and dummy otp
-        if($request->phoneNumber == $dummyPhoneNumber && $request->otp == $dummyOTP){
-            $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)->first();
+        // if($request->phoneNumber == $dummyPhoneNumber && $request->otp == $dummyOTP){
+        //     $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)->first();
            
-            return response([
-                'valid' => true,
-                'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
-            ], 201);
-        }
+        //     return response([
+        //         'valid' => true,
+        //         'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
+        //     ], 201);
+        // }
 
         $siteManager = SiteManager::where('phoneNumber',$request->phoneNumber)
                        ->where('otp', $request->otp)
@@ -121,12 +123,12 @@ class AuthenticationController extends Controller
             'phoneNumber' => $request->phoneNumber,
         ]);
 
-        $token = $siteManager->createToken('siteManagerToken')->accessToken;
+        //$token = $siteManager->createToken('siteManagerToken')->accessToken;
 
         return response([
             'valid' => true,
             'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
-            'token' => $token
+            //'token' => $token
         ], 201);
 
     }
@@ -157,12 +159,12 @@ class AuthenticationController extends Controller
         $siteManager->password = Hash::make($request->password);
         $siteManager->save();
 
-        $token = $siteManager->createToken('siteManagerToken')->accessToken;
+        //$token = $siteManager->createToken('siteManagerToken')->accessToken;
 
         return response([
             'message' => 'Password set successfully',
             'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber', 'dateRegistered']),
-            'token' => $token,
+            //'token' => $token,
         ], 201);
     }
 
@@ -195,7 +197,7 @@ class AuthenticationController extends Controller
             'valid' => true,
             'siteManager' => $siteManager->only(['siteManagerId','name', 'email', 'phoneNumber']),
             'token' => $token
-        ], 201);        
+        ], 200);        
     }
 
     public function forgotPassword(Request $request){
@@ -225,7 +227,7 @@ class AuthenticationController extends Controller
 
     public function sendSMS($phoneNumber, $siteManager){
 
-        $otp = rand(100000, 999999);
+        $otp = rand(1000, 9999);
         $message = "Your OTP is: " . $otp;
         $siteManager->otp = $otp;
         $siteManager->save();
@@ -244,7 +246,7 @@ class AuthenticationController extends Controller
         );
 
 
-        $payload = json_encode($data); //encode data to json
+        $payload = json_encode($data); 
 
         $ch = curl_init($url); 
         curl_setopt($ch, CURLOPT_POSTFIELDS, $payload); 
@@ -267,9 +269,8 @@ class AuthenticationController extends Controller
             curl_close($ch);
         }
 
-        Log::info($result);
-        return $result; //TODO: log the response
-
+        Log::info($result);//log the response
+        return $result; 
     }
 
     public function logout(Request $request){
