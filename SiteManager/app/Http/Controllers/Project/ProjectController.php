@@ -12,14 +12,14 @@ use Illuminate\Support\Str;
 
 class ProjectController extends Controller
 {
-  
+
     /**
      * Store a newly created project.
      */
     public function store(Request $request)
     {
         $request->validate([
-            'siteManagerId' => 'required|numeric', 
+            'siteManagerId' => 'required|numeric',
             'projectName' => 'required|string',
             'projectDescription' => 'required|string',
             'startDate' => 'required|date',
@@ -36,7 +36,7 @@ class ProjectController extends Controller
                 'message' => 'Site Manager does not exist',
             ], 404);
         }
-    
+
 
         if($request->file('image') != null){
             $uuid = Str::uuid();
@@ -48,19 +48,19 @@ class ProjectController extends Controller
                     'message' => 'Image folder path not found in settings',
                 ], 500);
             }
-    
-                
+            $domain = Setting::where('setting_key', 'domain')->value('value');
+
+
             $uploadedImage = $request->file('image');
-    
-                
+
+
             $imageName = $uuid . '_' . $uploadedImage->getClientOriginalName();
-    
-                
-            $uploadedImage->storeAs($imageFolderPath, $imageName);
-    
-            
+
+
+            $uploadedImage->move($imageFolderPath->value, $imageName);
+            $inviteCode = Str::uuid()->toString();
+
             $project = Project::create([
-                'siteManagerId' => $request->siteManagerId,
                 'projectName' => $request->projectName,
                 'projectDescription' => $request->projectDescription,
                 'startDate' => $request->startDate,
@@ -68,22 +68,28 @@ class ProjectController extends Controller
                 'status' => $request->status,
                 'progress' => $request->progress,
                 'image' => $imageName,
+                'inviteCode'=>$inviteCode
             ]);
-    
-    
+
+            $siteManager = SiteManager::findOrFail($request->siteManagerId);
+            $project->siteManagers()->attach($siteManager->siteManagerId);
+
+            $project->refresh();
+            $project['siteManagerId'] = (int) $request->siteManagerId;
+
             $domain = Setting::where('setting_key', 'domain')->value('value');
-    
-            $project->image = $domain . '/' .$imageFolderPath. '/' . $project->image_name;
-    
+
+            $project->image = $domain . '/' .'api/images'. '/' . $project->image_name;
+
             return response([
                 'message' => 'Project created successfully',
-                'project'=> $project
+                'project'=> $project->only(['projectId','siteManagerId','projectName', 'projectDescription', 'startDate', 'endDate','progress','status','image','inviteCode'])
             ], 201);
 
 
         }else{
+            $inviteCode = Str::uuid()->toString();
             $project = Project::create([
-                'siteManagerId' => $request->siteManagerId,
                 'projectName' => $request->projectName,
                 'projectDescription' => $request->projectDescription,
                 'startDate' => $request->startDate,
@@ -91,18 +97,25 @@ class ProjectController extends Controller
                 'status' => $request->status,
                 'progress' => $request->progress,
                 'image' => null,
+                'inviteCode'=>$inviteCode
             ]);
+
+            $siteManager = SiteManager::findOrFail($request->siteManagerId);
+            $project->siteManagers()->attach($siteManager->siteManagerId);
+
+            $project->refresh();
+            $project['siteManagerId'] = (int) $request->siteManagerId;
 
             return response([
                 'message' => 'Project created successfully',
-                'project'=> $project
+                'project'=> $project->only(['projectId','siteManagerId','projectName', 'projectDescription', 'startDate', 'endDate','progress','status','image','inviteCode'])
             ], 201);
         }
-        
-    
-    
 
-    
+
+
+
+
     }
 
     /**
@@ -110,22 +123,29 @@ class ProjectController extends Controller
      */
     public function show(string $id)
     {
-        $projects = Project::where('siteManagerId', $id)->get();
-
-
+        $siteManager = SiteManager::with('projects')->findOrFail($id);
+        $projects = $siteManager->projects;
         if ($projects->isEmpty()) {
             return response([
                 'message' => 'No projects found',
             ], 404);
         }
+        $domain = Setting::where('setting_key', 'domain')->value('value');
 
+
+        foreach($projects as $project){
+            $project['siteManagerId'] = (int) $id;
+            if($project->image != null){
+                $project->image = $domain . '/' .'api/images'. '/' . $project->image;
+            }
+        }
         return response([
-            'message' => 'Retrieved successfully',
+            'message' => 'retrieved success',
             'project' => $projects->map(function($project){
-                return $project->only(['projectId','siteManagerId','projectName', 'projectDescription', 'startDate', 'endDate','progress','status','image']);
+                return $project->only(['projectId','siteManagerId','projectName', 'projectDescription', 'startDate', 'endDate','progress','status','image','inviteCode']);
             })
         ], 200);
-        
+
     }
 
     public function details(string $id)
@@ -140,7 +160,7 @@ class ProjectController extends Controller
 
         return response([
             'message' => 'Retrieved successfully',
-            'project' => $project->only(['projectId','siteManagerId','projectName', 'projectDescription', 'startDate', 'endDate'])
+            'project' => $project->only(['projectId','siteManagerId','projectName', 'projectDescription', 'startDate', 'endDate','inviteCode'])
         ], 200);
     }
 
@@ -149,13 +169,13 @@ class ProjectController extends Controller
      */
     public function update(Request $request, string $projectId)
     {
-        $request->validate([ 
+        $request->validate([
             'projectName' => 'string',
             'projectDescription' => 'string',
             'startDate' => 'date',
             'endDate' => 'date',
         ]);
-        
+
         //check if site manager exists
         $project = Project::where('projectId', $request->projectId)->first();
         if (!$project) {
@@ -171,13 +191,14 @@ class ProjectController extends Controller
             'startDate' => $request->startDate,
             'endDate' => $request->endDate,
         ]);
+        $project->refresh();
 
-      
         return response([
             'message' => 'Project updated successfully',
+            'project'=> $project
         ], 201);
-        
-        
+
+
     }
 
     /**
@@ -196,10 +217,41 @@ class ProjectController extends Controller
 
         $project->delete();
 
+
         return response([
             'message' => 'Project archived successfully',
         ], 200);
 
-        
+
     }
+
+
+    //add member to project
+    public function addMember(String $userId, String $inviteCode){
+
+        $project = Project::where('inviteCode', $inviteCode)->first();
+        if (!$project) {
+            return response([
+                'message' => 'InviteCode not found',
+            ], 404);
+        }
+        $siteManager = SiteManager::findOrFail($userId);
+
+        if (!$project->siteManagers->contains($siteManager)) {
+            $project->siteManagers()->attach($siteManager->siteManagerId);
+        }else{
+            return response([
+                'message' => 'InviteCode not found',
+            ], 409);
+        }
+
+        $project['siteManagerId'] = (int) $userId;
+        return response([
+            'message'=>'retrived',
+            'project'=>$project->only(['projectId','siteManagerId','projectName', 'projectDescription', 'startDate', 'endDate','inviteCode'])
+        ],200);
+
+
+    }
+
 }

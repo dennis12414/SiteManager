@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Models;
-// INSERT INTO siteManagers (name, email, phoneNumber, otp, password, deleted_at, remember_token, phoneVerified) 
+// INSERT INTO siteManagers (name, email, phoneNumber, otp, password, deleted_at, remember_token, phoneVerified)
 // VALUES ('Derrick', 'testemail@gmail.com', '0712345678', '1234', 'password123', NULL, NULL, true);
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -30,7 +30,7 @@ class SiteManager extends Authenticatable
 
     public function projects()
     {
-        return $this->hasMany(Project::class, 'siteManagerId');
+        return $this->belongsToMany(Project::class, 'project_siteManager', 'siteManager_id', 'project_id');
     }
 
     public function siteManagerWallet()
@@ -38,11 +38,11 @@ class SiteManager extends Authenticatable
         return $this->hasOne(SiteManagerWallet::class, 'siteManagerId');
     }
 
-    public function siteManagerWalletTransactions()
-    {
-        return $this->hasMany(SiteManagerWalletTransaction::class, 'siteManagerId');
-    }
+    // public function siteManagerWalletTransactions()
+    // {
+    //     return $this->hasMany(SiteManagerWalletTransaction::class, 'siteManagerId');
+    // }
 
-    
-    
+
+
 }

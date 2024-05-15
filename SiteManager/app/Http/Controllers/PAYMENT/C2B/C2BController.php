@@ -35,7 +35,7 @@ class C2BController extends Controller
                     return response([
                         'message' => 'Error occured',
                         'error' => $result,
-                    ], 400);    
+                    ], 400);
                 }
 
             }
@@ -69,14 +69,14 @@ class C2BController extends Controller
                 abort(400, 'Amount above or below limit');
             }
       }
-  
+
       private function findSiteManager($phoneNumber)
       {
           $siteManager = SiteManager::where('phoneNumber',$phoneNumber)
                         ->where('phoneVerified', true)
                         ->first();
-          
-  
+
+
           if (!$siteManager) {
             abort(404, 'Site Manager does not exist');
           }
@@ -114,7 +114,7 @@ class C2BController extends Controller
             'siteManagerId' => $wallet->siteManagerId,
             'phoneNumber' => $wallet->phoneNumber,
             'transactionAmount' => $amount,
-            'transactionStatus' => 'Pending',
+            ' ' => 'Pending',
         ]);
 
 
@@ -130,7 +130,7 @@ class C2BController extends Controller
             "partnerCallbackUrl"=> config('settings.partnerCallbackUrl') . '/api/confirmation',//url to be called after payment is made
             "amount"=>  $amount,//amount to be charged
             "partnerReferenceID"=>  $uniqueId,//third party's unique ID
-            "narration"=> config('settings.narration'),//reason for the payment 
+            "narration"=> config('settings.narration'),//reason for the payment
 
         ];
 
@@ -141,20 +141,20 @@ class C2BController extends Controller
             'Content-Type: application/json',
             'Authorization: Bearer '.$this->getToken()
         ));
-        
+
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_POST, true);
         curl_setopt($curl, CURLOPT_POSTFIELDS,json_encode($paymentDetails));
         curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
         curl_setopt($curl, CURLOPT_TIMEOUT, 10);
 
-        
+
 
         try{
             $response = curl_exec($curl);
             Log::info($response);
             $response = json_decode($response);
-           
+
 
             if (curl_errno($curl)) {
                 throw new \Exception(curl_error($curl));
@@ -165,7 +165,7 @@ class C2BController extends Controller
         }finally{
             curl_close($curl);
         }
-       
+
         return $response;
 
       }
@@ -173,28 +173,28 @@ class C2BController extends Controller
       private function getToken()
       {
           $token = Cache::get('payment_token');
-  
+
           if (!$token) {
              $url = config('settings.authUrl');
              $username = config('settings.username');
              $password = config('settings.password');
-  
+
               $response = Http::withHeaders([
                   'Content-Type' => 'application/json',
               ])->post($url, [
                   'username' => $username,
                   'password' => $password,
               ]);
-  
+
               if ($response->ok()) {
                   $result = $response->json();
                   $token = $result['data']['token'];
                   Cache::put('payment_token', $token, 50);
               } else {
-                  throw new \Exception('Failed to get payment token');
+                  throw new \Exception('Failed to get payment token '.$response.$url.$username.$password);
               }
           }
-  
+
           return $token;
       }
 
@@ -216,13 +216,13 @@ class C2BController extends Controller
             'statusCode' => $paymentDetails->statusCode,
         ],200);
       }
-  
 
-      
-      
+
+
+
     //   public function STKPush(string $phoneNumber, int $amount){
     //         $url = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest';
-            
+
     //         $access_token = $this->getAccessToken();
     //         $BusinessShortCode = 174379;
     //         $Passkey = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919";
@@ -233,7 +233,7 @@ class C2BController extends Controller
     //         $callBackURL = env('APP_URL') . '/api/confirmation';
     //         $AccountReference = "Test";
     //         $TransactionDesc = "Test";
-         
+
 
     //         $data = array(
     //               "BusinessShortCode" => $BusinessShortCode,
@@ -258,7 +258,7 @@ class C2BController extends Controller
     //         curl_setopt($curl, CURLOPT_POST, true);
     //         curl_setopt($curl, CURLOPT_POSTFIELDS, $dataString);
     //         $curl_response = curl_exec($curl);
-            
+
     //         return $curl_response;
     //   }
 
@@ -280,7 +280,7 @@ class C2BController extends Controller
     //   }
 
     //   public function hundleCallback(Request $request){
-        
+
     //     $response = C2BResponse::confirmation();
 
     //   }

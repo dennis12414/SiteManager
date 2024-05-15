@@ -7,7 +7,8 @@ use App\Models\ClockIns;
 use App\Models\Project;
 use App\Models\SiteManager;
 use App\Models\Worker;
-use PDF; 
+use Hamcrest\Core\HasToString;
+use PDF;
 
 class ReportController extends Controller
 {
@@ -57,7 +58,7 @@ class ReportController extends Controller
             ], 404);
         }
 
-        $workerData = [];   
+        $workerData = [];
         $totalBalance = 0;
         foreach($workers as $worker){
             $totalDaysWorked = 0;
@@ -65,13 +66,13 @@ class ReportController extends Controller
             $totalPaymentAmount = 0;
             $totalWages = 0;
             $balance = 0;
-            
+
             foreach($clockIns as $clockIn){
                 if($clockIn->workerId === $worker->workerId && $clockIn->clockInTime !== null){
                     $totalDaysWorked++;
                     $amountPaid += $worker->amountPaid;
                     $totalWages += $worker->payRate;
-                    
+
                     if($clockIn->amountPaid !== null){
                         $totalPaymentAmount += $clockIn->amountPaid;
                     }
@@ -87,7 +88,7 @@ class ReportController extends Controller
                 'totalWages' => $totalWages,
                 'paidAmount' => $totalPaymentAmount,
                 'balance' => $balance,
-            ]; 
+            ];
 
             $totalBalance += $balance;
 
@@ -103,23 +104,75 @@ class ReportController extends Controller
             'project' => $projectData,
             'workers' => $workerData,
             'totalBalance' => $totalBalance,
-        ], 200); 
-        
+        ], 200);
+
     }
 
+    //a lot of workers report
+    public function getWorkerToPay(String $siteManagerId,String $projectId, string $startDate = null, string $endDate = null){
+
+        $startDate = request('startDate');
+        $endDate = request('endDate');
+
+
+        if($startDate && $endDate){
+            $clockIns = ClockIns::where('siteManagerId', $siteManagerId)
+            ->where('projectId', $projectId)
+            ->whereBetween('date', [$startDate, $endDate])
+            ->get();
+
+        }elseif($startDate){
+            $clockIns = ClockIns::where('siteManagerId', $siteManagerId)
+            ->where('projectId', $projectId)
+            ->where('date', $startDate)
+            ->get();
+        }
+        else{
+            $clockIns = ClockIns::where('siteManagerId', $siteManagerId)
+            ->where('projectId', $projectId)
+            ->get();
+        }
+
+        if (!$clockIns) {
+            return response([
+                'message' => 'No workers clocked in',
+            ], 404);
+        }
+
+         $uniqueUserIds = $clockIns->pluck('workerId')->unique()->values()->toArray();
+
+         // Array to store return objects
+         $returnObjects = [];
+
+         // Loop through unique user IDs and call generateWorkerReport for each worker
+         foreach ($uniqueUserIds as $userId) {
+             $report = $this->generateWorkerReport($userId, $projectId, $startDate, $endDate);
+             $returnObjects[] = $report;
+         }
+
+        return response([
+            'message' => 'Retreived successfully',
+            'data' => $returnObjects,
+        ], 200);
+
+    }
+
+
+
+
     //individual worker report
-	public function generateWorkerReport(String $workerId, String $projectId, string $startDate = null, string $endDate = null)
+	public function generateWorkerReport($workerId, String $projectId, string $startDate = null, string $endDate = null)
 	{
 	    $worker = Worker::where('workerId', $workerId)->first();
-	    
+
 	    if (!$worker) {
 		return response([
 		    'message' => 'Worker does not exist',
 		], 404);
 	    }
-	    
+
 	    $clockIns = $this->getClockIns($workerId, $projectId, $startDate, $endDate);
-	    
+
 	    if (!$clockIns->isEmpty()) {
 		$workerDetails = $this->getWorkerDetails($worker);
 		$workerData = $this->getWorkerData($clockIns, $worker);
@@ -154,10 +207,13 @@ class ReportController extends Controller
 	private function getWorkerDetails($worker)
 	{
 	    return [
-		'name' => $worker->name,
-		'phoneNumber' => $worker->phoneNumber,
-		'payRate' => $worker->payRate,
-		'dateRegistered' => date('d-m-Y', strtotime($worker->dateRegistered)),
+            'workerId'=>$worker->workerId,
+            'name' => $worker->name,
+		    'phoneNumber' => $worker->phoneNumber,
+		    'payRate' => $worker->payRate,
+            'profilePic'=>$worker->profilePic,
+            'role'=>$worker->role,
+		    'dateRegistered' => date('d-m-Y', strtotime($worker->dateRegistered)),
 	    ];
 	}
 
@@ -173,6 +229,7 @@ class ReportController extends Controller
 		    $totalWages += $worker->payRate;
 
 		    $workerData[] = [
+                'clockId'=>$clockIn->clockId,
 		        'date' => $clockIn->date,
 		        'totalPaidAmount' => $totalPaymentAmount,
 		        'balance' => $worker->payRate - $clockIn->amountPaid,

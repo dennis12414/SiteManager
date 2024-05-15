@@ -234,9 +234,8 @@ class WorkerController extends Controller
 
     public function archive(string $workerId){
         
-        $worker = Worker::where('workerId', $workerId)
-            //->where('siteManagerId', $siteManagerId)
-                  ->first();
+        $worker = Worker::where('workerId', $workerId)->first();
+        
         if (!$worker) {
             return response([
                

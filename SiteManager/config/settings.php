@@ -18,7 +18,7 @@ return [
     'notificationCode' => env('SMS_NOTIFICATION_CODE', 'PMANAGER-SMS'),
     'smsUrl' => env('SMS_URL','http://172.105.90.112:8080/notification-api/v1/notification/create'),
     'subject' => env('SUBJECT','SMS Test'),
-    
+
 
     /**
      *  -----------------------------
@@ -26,7 +26,7 @@ return [
      * ------------------------------
      */
     'authUrl' => env('AUTH_URL','http://172.105.90.112:8080/paymentexpress/v1/client/users/authenticate'),
-    'username' => env('USERNAME','ikoaqua-mpesa-user'),
+    'username' => env('AUTHUSERNAME','ikoaqua-mpesa-user'),
     'password' => env('PASSWORD','F5Hm5CNDg0kG'),
 
     /**
@@ -39,8 +39,8 @@ return [
     'paymentType' => env('PAYMENT_TYPE','BusinessPayment'),
     'serviceCode' => env('SERVICE_CODE','MPESAB2C'),
     'currencyCode' => env('CURRENCY','KES'),
-    'callbackUrl' => env('CALLBACK_URL','http://172.105.90.112/site-manager-backend/SiteManager'),
-    
+    'callbackUrl' => env('CALLBACK_URL','https://11c6-197-136-96-222.ngrok-free.app'),
+
 
 
     /**
@@ -54,7 +54,8 @@ return [
     'paymentOption' => env('PAYMENT_OPTION','MPESA'),
     'C2BserviceCode' => env('SERVICE_CODE','SITEMANAGER-COLLECTIONS'),
     'accountNumber' => env('ACCOUNT_NUMBER','TestAccount'),
-    'partnerCallbackUrl' => env('PARTNER_CALLBACK_URL','http://172.105.90.112/site-manager-backend/SiteManager'),
+    //'partnerCallbackUrl' => env('PARTNER_CALLBACK_URL','http://172.105.90.112/site-manager-backend/SiteManager'),
+    'partnerCallbackUrl' => env('PARTNER_CALLBACK_URL','https://11c6-197-136-96-222.ngrok-free.app'),
     'narration' => env('NARRATION','Making Test Payment'),
 
 ];

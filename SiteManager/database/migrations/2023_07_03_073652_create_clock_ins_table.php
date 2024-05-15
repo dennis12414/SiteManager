@@ -21,6 +21,7 @@ return new class extends Migration
             $table->foreign('workerId')->references('workerId')->on('workers');
             $table->foreign('projectId')->references('projectId')->on('projects');
             $table->foreign('siteManagerId')->references('siteManagerId')->on('siteManagers');
+            $table->softDeletes(); 
             $table->timestamps();
         });
         

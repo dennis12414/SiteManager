@@ -36,21 +36,21 @@ class B2CResponse extends Controller
             // Check if payment has already been processed
             $paymentDetails = $this->getPaymentDetails($payerTransactionID);
             $clockIns = $this->getClockInDetails($paymentDetails);
-            $payRate = $paymentDetails[0]->payRate;
+            $payRate = $paymentDetails->payRate;
             $totalPay = $payRate * count($clockIns);
-            $wallet = $this->getWallet($paymentDetails[0]->siteManagerId);
-            
+            $wallet = $this->getWallet($paymentDetails->siteManagerId);
+
 
             // Update wallet and clock in details based on payment status
             if ($statusCode === "00") {
                 $transactionStatus = "Success";
                 $this->updateWalletAndClockInSuccess($wallet, $clockIns,$payRate, $totalPay);
                 $this->updatePaymentDetails($paymentDetails, $statusCode, $message,  $receiptNumber, $transactionID, $transactionStatus);
-               
+
             }else{
                 $transactionStatus = "Failed";
                 $this->updateWalletAndClockInFail($wallet, $clockIns, $totalPay);
-                
+
             }
 
             // Return success response
@@ -66,7 +66,7 @@ class B2CResponse extends Controller
             Log::error($e->getMessage());
             return response([
                 'message' => $e->getMessage(),
-                
+
             ], 400);
         }
     }
@@ -113,15 +113,15 @@ class B2CResponse extends Controller
             $paymentDetail->transactionStatus = $transactionStatus;
             $paymentDetail->save();
         }
-        
-       
+
+
     }
 
-   
+
 
     private function getPaymentDetails($payerTransactionID){
-        $paymentDetails = Transactions::where('payerTransactionID', $payerTransactionID)->get();
-        if (count($paymentDetails) == 0) {
+        $paymentDetails = Transactions::where('payerTransactionID', $payerTransactionID)->first();
+        if (!$paymentDetails) {
             abort(400, 'Payment was not initiated');
         }
 
@@ -133,9 +133,9 @@ class B2CResponse extends Controller
 
     private function getClockInDetails($paymentDetails){
         $clockInDates = $paymentDetails->pluck('workDate');
-        $projectId = $paymentDetails[0]->projectId;
-        $siteManagerId = $paymentDetails[0]->siteManagerId;
-        $workerId = $paymentDetails[0]->workerId;
+        $projectId = $paymentDetails->projectId;
+        $siteManagerId = $paymentDetails->siteManagerId;
+        $workerId = $paymentDetails->workerId;
 
         $clockIns = ClockIns::whereIn('clockInTime', $clockInDates)
                     ->where('projectId', $projectId)
@@ -145,7 +145,7 @@ class B2CResponse extends Controller
 
         if(count($clockIns) == 0){
             abort(400, 'Clock in details not found');
-            
+
         }
 
         return $clockIns;
