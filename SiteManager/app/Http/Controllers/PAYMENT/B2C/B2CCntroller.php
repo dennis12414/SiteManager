@@ -12,6 +12,7 @@ use App\Models\Transactions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
@@ -23,13 +24,14 @@ class B2CCntroller extends Controller
     public function initiatePayment(Request $request)
     {
         try {
-            $this->validatePaymentRequest($request);
-            $siteManager = $this->findSiteManager($request->siteManagerId);
-            $project = $this->findProject($request->projectId);
-            $wallet = $this->findSiteManagerWallet($request->siteManagerId);
+            //$this->validatePaymentRequest($request);
+            $data = request()->json()->all();
+            $siteManager = $this->findSiteManager($data["siteManagerId"]);
+            $project = $this->findProject($data["projectId"]);
+            $wallet = $this->findSiteManagerWallet($data["siteManagerId"]);
 
             // Iterate through each payment detail
-            foreach ($request->payments as $payment) {
+            foreach ($data["payments"] as $payment) {
                 $worker = $this->findWorker($payment['workerId']);
                 $clockIns = $this->findClockIn($payment['clockId'], $payment['workerId']);
                 //$totalPay = $worker->payRate * count($clockIns);
@@ -37,7 +39,7 @@ class B2CCntroller extends Controller
                 // Check if sufficient funds are available
                 if ($wallet->availableBalance < $worker->payRate) {
                     return response([
-                        'message' => "Insufficient funds in your wallet wallet :: .$wallet->availableBalance. pay:: .$worker->payRate.",
+                        'message' => "Insufficient funds in your wallet",
                     ], 404);
                 }
 
@@ -115,8 +117,9 @@ class B2CCntroller extends Controller
             Log::error($e->getMessage());
             return response([
                 'message' => $e->getMessage(),
-            ], 400);
+            ], 401);
         }
+
     }
 
 
@@ -317,6 +320,7 @@ class B2CCntroller extends Controller
 
     private function validatePaymentRequest(Request $request)
     {
+
         $request->validate([
             'siteManagerId' => 'required|numeric',
             'projectId' => 'required|numeric',

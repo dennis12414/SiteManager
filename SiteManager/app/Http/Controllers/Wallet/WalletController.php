@@ -15,9 +15,9 @@ use Carbon\Carbon;
 
 class WalletController extends Controller
 {
-    
+
     public function getWalletBalance(string $phoneNumber){
-      
+
         $siteManager = SiteManager::where('phoneNumber', $phoneNumber)
                         ->where('phoneVerified', true)
                         ->first();
@@ -51,17 +51,18 @@ class WalletController extends Controller
         ], 200);
   }
 
-   public function getTransactionHistory(string $phoneNumber, string $startDate = null,string $endDate = null, string $paymentType = null, string $paymentStatus = null)
+   public function getTransactionHistory(string $phoneNumber, string $startDate = null,string $endDate = null, string $paymentType = null, string $paymentStatus = null,string $projectId = null)
     {
-        
+
         $startDate = request('startDate');
         $endDate = request('endDate');
-        
-        
+
+
         $paymentType = request('paymentType');
         $paymentStatus = request('paymentStatus');
+        $projectId = request('projectId');
+//
 
-      
         if ($startDate && $endDate) {
             $startDate = $startDate . ' 00:00:00';
             $endDate = $endDate . ' 23:59:59';
@@ -83,6 +84,9 @@ class WalletController extends Controller
             })
             ->when($paymentStatus, function($query) use ($paymentStatus){
                 return $query->where('transactionStatus',$paymentStatus);
+            })
+            ->when($projectId, function($query) use ($projectId){
+                return $query->where('projectId',$projectId);
             })
             ->when($startDate && $endDate == null, function ($query) use ($startDate) {
                 return $query->whereDate('created_at', $startDate);

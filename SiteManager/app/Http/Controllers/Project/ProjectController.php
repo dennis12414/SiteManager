@@ -167,15 +167,18 @@ class ProjectController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $projectId)
+    public function update(Request $request, string $projectId,string $userId)
     {
         $request->validate([
-            'projectName' => 'string',
-            'projectDescription' => 'string',
-            'startDate' => 'date',
-            'endDate' => 'date',
+            'projectName' => 'required|string',
+            'projectDescription' => 'required|string',
+            'startDate' => 'required|date',
+            'endDate' => 'required|date',
+            'progress' => 'required|string',
+            'status' => 'required|string',
+            'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
-
+//
         //check if site manager exists
         $project = Project::where('projectId', $request->projectId)->first();
         if (!$project) {
@@ -184,21 +187,77 @@ class ProjectController extends Controller
             ], 404);
         }
 
-        //update project
-        $project = Project::where('projectId', $projectId)->update([
-            'projectName' => $request->projectName,
-            'projectDescription' => $request->projectDescription,
-            'startDate' => $request->startDate,
-            'endDate' => $request->endDate,
-        ]);
-        $project->refresh();
 
-        return response([
-            'message' => 'Project updated successfully',
-            'project'=> $project
-        ], 201);
+        if($request->file('image') != null) {
+            $uuid = Str::uuid();
+
+            $imageFolderPath = Setting::where('setting_key', 'image_folder_path')->first();
+            if (!$imageFolderPath) {
+                return response([
+                    'ty' => $imageFolderPath,
+                    'message' => 'Image folder path not found in settings',
+                ], 500);
+            }
+            $domain = Setting::where('setting_key', 'domain')->value('value');
 
 
+            $uploadedImage = $request->file('image');
+
+
+            $imageName = $uuid . '_' . $uploadedImage->getClientOriginalName();
+
+
+            $uploadedImage->move($imageFolderPath->value, $imageName);
+
+            $project = Project::where('projectId', $projectId)->update([
+                'projectName' => $request->projectName,
+                'projectDescription' => $request->projectDescription,
+                'startDate' => $request->startDate,
+                'endDate' => $request->endDate,
+                'status' => $request->status,
+                'progress' => $request->progress,
+                'image' => $imageName,
+            ]);
+
+            $project = Project::where('projectId', $request->projectId)->first();
+            $project->refresh();
+            $project['siteManagerId'] = (int) $userId;
+
+            $domain = Setting::where('setting_key', 'domain')->value('value');
+
+            $project->image = $domain . '/' .'api/images'. '/' . $project->image;
+
+            return response([
+                'message' => 'Project updated successfully',
+                'project'=> $project->only(['projectId','siteManagerId','projectName', 'projectDescription', 'startDate', 'endDate','progress','status','image','inviteCode'])
+            ], 201);
+
+
+        }else{
+            $project = Project::where('projectId', $projectId)->update([
+                'projectName' => $request->projectName,
+                'projectDescription' => $request->projectDescription,
+                'startDate' => $request->startDate,
+                'endDate' => $request->endDate,
+                'status' => $request->status,
+                'progress' => $request->progress,
+            ]);
+
+            $project = Project::where('projectId', $request->projectId)->first();
+            $project->refresh();
+            $project['siteManagerId'] = (int) $userId;
+
+            $domain = Setting::where('setting_key', 'domain')->value('value');
+
+            $project->image = $domain . '/' .'api/images'. '/' . $project->image_name;
+
+            return response([
+                'message' => 'Project updated successfully',
+                'project'=> $project->only(['projectId','siteManagerId','projectName', 'projectDescription', 'startDate', 'endDate','progress','status','image','inviteCode'])
+            ], 201);
+
+        }
+            //update project
     }
 
     /**
@@ -250,6 +309,28 @@ class ProjectController extends Controller
             'message'=>'retrived',
             'project'=>$project->only(['projectId','siteManagerId','projectName', 'projectDescription', 'startDate', 'endDate','inviteCode'])
         ],200);
+
+
+    }
+
+    public function getMembers(String $projectId){
+
+        $project = Project::where('projectId', $projectId)->first();
+        if (!$project) {
+            return response([
+                'message' => 'InviteCode not found',
+            ], 404);
+        }
+
+        $members = $project->siteManagers;
+
+        return response([
+            'message'=>'retrived',
+            'project'=>  $members->map(function($member){
+                return $member->only(['siteManagerId','name', 'email', 'phoneNumber', 'dateRegistered','profilePicture']
+                    ,200);
+            })
+        ]);
 
 
     }

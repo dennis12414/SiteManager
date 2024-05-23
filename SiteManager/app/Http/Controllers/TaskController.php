@@ -13,11 +13,8 @@ class TaskController extends Controller
      */
     public function index()
     {
-
-        
         $tasks = Task::select('taskId', 'title', 'updated_at')->get();
 
-       
         $formattedTasks = $tasks->map(function ($task) {
             return [
                 'id' => $task->id,
@@ -26,11 +23,10 @@ class TaskController extends Controller
             ];
         });
 
-        
         return response()->json(['tasks' => $formattedTasks], 200);
     }
 
-  
+
     public function store(Request $request)
     {
         $validatedData = $request->validate([
@@ -40,7 +36,7 @@ class TaskController extends Controller
             'end_date' => 'required|date|after:start_date',
             //'image_attachments.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048', // Example validation for image attachments
             'assignees' => 'array',
-            'assignees.*' => 'required|integer|exists:workers,workerId', // Assuming workers are stored in the 'workers' table
+            'assignees.*' => 'integer|exists:workers,workerId', // Assuming workers are stored in the 'workers' table
             'status' => 'required|string|in:pending,in_progress,completed,not_started',
         ]);
 
@@ -52,7 +48,7 @@ class TaskController extends Controller
             ], 404);
         }
 
-        
+
         $task = Task::create([
             'projectId' => $validatedData['projectId'],
             'title' => $validatedData['title'],
@@ -61,35 +57,30 @@ class TaskController extends Controller
             'status' => $validatedData['status'],
         ]);
 
-        
+        if($request->assignees != null){
         $task->assignees()->attach($validatedData['assignees']);
-        
+        }
+
         return response([
-            'message' => 'Task created successfully', 
-            'task' => $task
+            'message' => 'Task created successfully',
+            'task' =>$task->only(['taskId','projectId','title','start_date', 'end_date','status','assignees'])
         ],201);
 
-
-        
     }
 
     public function taskStatusCounts(string $projectId)
     {
-       
-            
             $statuses = ['pending', 'in_progress', 'completed', 'not_started'];
-
-            
             $statusCounts = Task::selectRaw('status, count(*) as count')
                 ->where('projectId', $projectId)
                 ->whereIn('status', $statuses)
                 ->groupBy('status')
                 ->get();
 
-            
+
             $formattedStatusCounts = array_fill_keys($statuses, 0);
 
-            
+
             foreach ($statusCounts as $statusCount) {
                 $formattedStatusCounts[$statusCount->status] = $statusCount->count;
             }
@@ -98,7 +89,7 @@ class TaskController extends Controller
                 'status_counts' => $formattedStatusCounts
             ],200);
 
-    
+
     }
 
 
@@ -113,26 +104,19 @@ class TaskController extends Controller
         // if($tasks->isEmpty()){
         //     return response([
         //         'message' => 'No tasks found',
-        //     ], 404); 
+        //     ], 404);
         // }
 
         return response([
             'message' => 'Retrieved successfully',
             'project' => $tasks->map(function($task){
-                return $task->only(['projectId','title','start_date', 'end_date','status','assignees']);
+                return $task->only(['taskId','projectId','title','start_date', 'end_date','status','assignees']);
             })
         ], 200);
 
-        
+
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.
@@ -143,9 +127,9 @@ class TaskController extends Controller
             'title' => 'string',
             'start_date' => 'date',
             'end_date' => 'date|after:start_date',
-            'image_attachments.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048', 
-            'assignees' => 'array',
-            'assignees.*' => 'integer|exists:workers,id', 
+            //'image_attachments.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            //'assignees' => 'array',
+            //'assignees.*' => 'integer|exists:workers,id',
             'status' => 'string|in:pending,in_progress,completed,not_started',
         ]);
 
@@ -160,7 +144,10 @@ class TaskController extends Controller
 
         // Handle image attachments if needed
 
-        return response()->json(['message' => 'Task updated successfully', 'task' => $task], 200);
+        return response([
+            'message' => 'Task updated successfully',
+            'task' => $task->only(['taskId','projectId','title','start_date', 'end_date','status','assignees'])
+        ], 200);
     }
 
     /**

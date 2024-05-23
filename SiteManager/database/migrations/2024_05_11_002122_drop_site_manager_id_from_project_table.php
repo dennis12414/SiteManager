@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('projects', function (Blueprint $table) {
-            $table->dropForeign(['siteManagerId']);
-            $table->dropColumn('siteManagerId');
+//            $table->dropForeign(['siteManagerId']);
+//            $table->dropColumn('siteManagerId');
         });
     }
 

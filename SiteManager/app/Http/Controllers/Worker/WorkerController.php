@@ -25,12 +25,12 @@ class WorkerController extends Controller
     {
         $request->validate([
             'name' => 'required|string',
-            'phoneNumber' => 'required|numeric',
+            'phoneNumber' => 'required|string',
             'dateRegistered' => 'required|date',
             'payRate' => 'required|numeric',
             'siteManagerId' => 'required|numeric',
             'role' => 'required|string',
-            'gender' => 'required|string',
+            'gender' => 'string',
             'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
@@ -63,9 +63,9 @@ class WorkerController extends Controller
                 ], 500);
             }
             $uploadedImage = $request->file('image');
-                
+
             $imageName = $uuid . '_' . $uploadedImage->getClientOriginalName();
-                
+
             $uploadedImage->storeAs($imageFolderPath, $imageName);
 
             $worker = Worker::create([
@@ -80,14 +80,14 @@ class WorkerController extends Controller
             ]);
 
             $domain = Setting::where('setting_key', 'domain')->value('value');
-    
+
             $worker->profilePic = $domain . '/' .$imageFolderPath. '/' . $worker->profilePic;
-    
+
             return response([
                 'message' => 'Worker created successfully',
-                'worker' => $worker->only(['workerId', 
+                'worker' => $worker->only(['workerId',
                 'name', 'phoneNumber', 'payRate',
-                 'dateRegistered', 'siteManagerId',   
+                 'dateRegistered', 'siteManagerId',
                 'role',
                 'gender',
                 'profilePic',]),
@@ -106,28 +106,28 @@ class WorkerController extends Controller
 
             return response([
                 'message' => 'Worker created successfully',
-                'worker' => $worker->only(['workerId', 
+                'worker' => $worker->only(['workerId',
                 'name', 'phoneNumber', 'payRate',
-                 'dateRegistered', 'siteManagerId',   
+                 'dateRegistered', 'siteManagerId',
                 'role',
                 'gender',
                 'profilePic',]),
             ], 201);
 
         }
-    
-            
+
+
     }
 
     /**
      * search for workers
      */
     public function search(string $siteManagerId, string $searchTerm)
-    {  
+    {
         $workers = Worker::where('siteManagerId', $siteManagerId)
             ->where('name', 'LIKE', '%'.$searchTerm.'%')
             ->orWhere('phoneNumber', 'LIKE', '%'.$searchTerm.'%')
-            ->get(); 
+            ->get();
 
         //workers is empty
         if(!$workers){
@@ -139,21 +139,21 @@ class WorkerController extends Controller
         // $domain = Setting::where('setting_key', 'domain')->value('value');
         // $imageFolderPath = Setting::where('setting_key', 'image_folder_path')->first();
         // $workers->profilePic = $domain . '/' .$imageFolderPath. '/' . $workers->profilePic;
-        
+
 
         return response([
             'message' => 'Retrieved successfully',
             'workers' => $workers->map(function($worker){
-            
+
                 return $worker->only(['workerId','name', 'phoneNumber', 'payRate', 'dateRegistered', 'siteManagerId', 'role',
                 'gender','profilePic',]);
             })
         ], 200);
-        
-    } 
+
+    }
 
 
-    public function show(string $id, string $startDate = null, string $endDate = null, string $searchQuery = null) 
+    public function show(string $id, string $startDate = null, string $endDate = null, string $searchQuery = null)
     {
         $startDate = request('startDate');
         $endDate = request('endDate');
@@ -166,13 +166,13 @@ class WorkerController extends Controller
                 ->whereBetween('dateRegistered', [$startDate, $endDate])
                 ->get();
         }elseif($startDate){
-            
+
             $workers = Worker::where('siteManagerId', $id)
                 ->where('dateRegistered',  [$startDate . ' 00:00:00', $startDate . ' 23:59:59'])
                 ->get();
         }
         else{
-            
+
             $workers = Worker::where('siteManagerId', $id)->get();
         }
 
@@ -233,26 +233,26 @@ class WorkerController extends Controller
     }
 
     public function archive(string $workerId){
-        
+
         $worker = Worker::where('workerId', $workerId)->first();
-        
+
         if (!$worker) {
             return response([
-               
+
                 'workerId' => $workerId,
                 'message' => 'Worker does not exist',
-            ], 404); 
+            ], 404);
         }
 
         $worker->delete();
 
         return response([
-           
+
             'workerId' => $workerId,
             'message' => 'Worker archived successfully',
-        ], 200); 
+        ], 200);
 
-       
+
     }
 
 }

@@ -202,7 +202,7 @@ class C2BController extends Controller
       {
         $paymentDetails = Transactions::where('partnerReferenceID',$partnerReferenceID)->first();
         if(!$paymentDetails){
-            return response(['message'=>'Payment was not initiated (partnerReferenceID not found)'],400);
+            return response(['message'=>'Payment was not initiated (partnerReferenceID not found)', 'success'=>false,],400);
         }
         $wallet =   SiteManagerWallet::where('siteManagerId',$paymentDetails->siteManagerId)->first();
 
@@ -214,6 +214,7 @@ class C2BController extends Controller
             'transactionID' => $paymentDetails->transactionID,
             'receiptNumber' => $paymentDetails->receiptNumber,
             'statusCode' => $paymentDetails->statusCode,
+            'success'=>true,
         ],200);
       }
 
