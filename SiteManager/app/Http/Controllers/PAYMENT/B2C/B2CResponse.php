@@ -37,7 +37,7 @@ class B2CResponse extends Controller
             $paymentDetails = $this->getPaymentDetails($payerTransactionID);
             $clockIns = $this->getClockInDetails($paymentDetails);
             $payRate = $paymentDetails->payRate;
-            $totalPay = $payRate * count($clockIns);
+            $totalPay = $payRate;
             $wallet = $this->getWallet($paymentDetails->siteManagerId);
 
 
@@ -58,7 +58,6 @@ class B2CResponse extends Controller
                 'payRate' => $payRate,
                 'totalPay' => $totalPay,
                 'clockIns' => $clockIns,
-                'count' => count($clockIns),
                 'message' => 'Payment processed successfully',
             ], 200);
 
@@ -79,11 +78,11 @@ class B2CResponse extends Controller
         $wallet->save();
 
         // Update the clock in details
-        foreach($clockIn as $clockIn){
+        //foreach($clockIn as $clockIn){
             $clockIn->paymentStatus = 'paid';
             $clockIn->amountPaid = $payRate;
             $clockIn->save();
-        }
+        //}
     }
 
     private function updateWalletAndClockInFail($wallet, $clockIn, $totalPay)
@@ -94,25 +93,25 @@ class B2CResponse extends Controller
         $wallet->save();
 
          // Update the clock in details
-        foreach($clockIn as $clockIn){
+        //foreach($clockIn as $clockIn){
             $clockIn->paymentStatus = 'failed';
             $clockIn->save();
-        }
+        //}
 
 
     }
 
-    private function updatePaymentDetails($paymentDetails, $statusCode, $message, $receiptNumber, $transactionID, $transactionStatus)
+    private function updatePaymentDetails($paymentDetail, $statusCode, $message, $receiptNumber, $transactionID, $transactionStatus)
     {
         // Update the payment details
-        foreach($paymentDetails as $paymentDetail){
+        //foreach($paymentDetails as $paymentDetail){
             $paymentDetail->statusCode = $statusCode;
             $paymentDetail->message = $message;
             $paymentDetail->receiptNumber = $receiptNumber;
             $paymentDetail->transactionID = $transactionID;
             $paymentDetail->transactionStatus = $transactionStatus;
             $paymentDetail->save();
-        }
+        //}
 
 
     }
@@ -132,20 +131,19 @@ class B2CResponse extends Controller
     }
 
     private function getClockInDetails($paymentDetails){
-        $clockInDates = $paymentDetails->pluck('workDate');
+        $clockInDates = $paymentDetails->workDate;
         $projectId = $paymentDetails->projectId;
-        $siteManagerId = $paymentDetails->siteManagerId;
+        //$siteManagerId = $paymentDetails->siteManagerId;
         $workerId = $paymentDetails->workerId;
 
-        $clockIns = ClockIns::whereIn('clockInTime', $clockInDates)
+        $clockIns = ClockIns::where('clockInTime', $clockInDates)
                     ->where('projectId', $projectId)
-                    ->where('siteManagerId', $siteManagerId)
+                    //->where('siteManagerId', $siteManagerId)
                     ->where('workerId', $workerId)
-                    ->get();
+                    ->first();
 
-        if(count($clockIns) == 0){
+        if(!$clockIns){
             abort(400, 'Clock in details not found');
-
         }
 
         return $clockIns;

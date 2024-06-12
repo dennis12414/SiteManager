@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Advertiser;
 use Illuminate\Http\Request;
 use App\Models\Task;
 use App\Models\Project;
@@ -32,6 +33,7 @@ class TaskController extends Controller
         $validatedData = $request->validate([
             'projectId'=>'required|integer',
             'title' => 'required|string',
+            'budget' => 'required|string',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             //'image_attachments.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048', // Example validation for image attachments
@@ -52,10 +54,13 @@ class TaskController extends Controller
         $task = Task::create([
             'projectId' => $validatedData['projectId'],
             'title' => $validatedData['title'],
+            'budget' =>  $validatedData['budget'],
             'start_date' => $validatedData['start_date'],
             'end_date' => $validatedData['end_date'],
             'status' => $validatedData['status'],
         ]);
+
+        $task->refresh();
 
         if($request->assignees != null){
         $task->assignees()->attach($validatedData['assignees']);
@@ -63,7 +68,7 @@ class TaskController extends Controller
 
         return response([
             'message' => 'Task created successfully',
-            'task' =>$task->only(['taskId','projectId','title','start_date', 'end_date','status','assignees'])
+            'task' =>$task->only(['taskId','projectId','title','budget','start_date', 'end_date','status','assignees'])
         ],201);
 
     }
@@ -110,7 +115,7 @@ class TaskController extends Controller
         return response([
             'message' => 'Retrieved successfully',
             'project' => $tasks->map(function($task){
-                return $task->only(['taskId','projectId','title','start_date', 'end_date','status','assignees']);
+                return $task->only(['taskId','projectId','title','budget','start_date', 'end_date','status','assignees']);
             })
         ], 200);
 
@@ -125,6 +130,7 @@ class TaskController extends Controller
     {
         $validatedData = $request->validate([
             'title' => 'string',
+            'budget' => 'string',
             'start_date' => 'date',
             'end_date' => 'date|after:start_date',
             //'image_attachments.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -146,7 +152,7 @@ class TaskController extends Controller
 
         return response([
             'message' => 'Task updated successfully',
-            'task' => $task->only(['taskId','projectId','title','start_date', 'end_date','status','assignees'])
+            'task' => $task->only(['taskId','projectId','title','budget','start_date', 'end_date','status','assignees'])
         ], 200);
     }
 
@@ -155,6 +161,19 @@ class TaskController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $task = Task::where('taskId', $id)->first();
+
+        if (!$task) {
+            return response([
+                'message' => 'Task not found',
+            ], 404);
+        }
+
+        // Deleting the advertiser and its related adverts
+        $task->delete();
+
+        return response([
+            'message' => 'Task deleted successfully',
+        ], 200);
     }
 }

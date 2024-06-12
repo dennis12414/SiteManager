@@ -52,6 +52,7 @@ Route::post('confirmation', [C2BResponse::class, 'confirmation']);
     Route::Get('/task/status/{projectId}', [TaskController::class, 'taskStatusCounts']);
     Route::post('/task/create', [TaskController::class, 'store']);
     Route::put('/task/{taskId}/update', [TaskController::class, 'update']);
+    Route::delete('/task/{taskId}/delete', [TaskController::class, 'destroy']);
 
 
     Route::Get('/advert', [AdvertController::class, 'index']);
@@ -95,6 +96,8 @@ Route::post('confirmation', [C2BResponse::class, 'confirmation']);
 
     Route::Get('/report/payments/{siteManagerId}/{projectId}',[ReportController::class, 'getWorkerToPay']);
     Route::Get('/report/{projectId}',[ReportController::class, 'generateReport']);
+    Route::Get('/report/budget/{projectId}',[ReportController::class, 'getBudget']);
+    Route::Get('/report/clockInStats/{projectId}',[ReportController::class, 'getClockInStats']);
     Route::Get('/workerReport/{workerId}/{projectId}',[ReportController::class, 'generateWorkerReport']);
 
     Route::Get('/siteManager',[SiteManagerController::class, 'index']);//show workers

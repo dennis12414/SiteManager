@@ -25,6 +25,7 @@ class ProjectController extends Controller
             'startDate' => 'required|date',
             'endDate' => 'required|date',
             'progress' => 'required|Integer',
+            'budget' => 'required|string',
             'status' => 'required|string',
             'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
@@ -66,6 +67,7 @@ class ProjectController extends Controller
                 'startDate' => $request->startDate,
                 'endDate' => $request->endDate,
                 'status' => $request->status,
+                'budget' => $request->budget,
                 'progress' => $request->progress,
                 'image' => $imageName,
                 'inviteCode'=>$inviteCode
@@ -95,6 +97,7 @@ class ProjectController extends Controller
                 'startDate' => $request->startDate,
                 'endDate' => $request->endDate,
                 'status' => $request->status,
+                'budget' => $request->budget,
                 'progress' => $request->progress,
                 'image' => null,
                 'inviteCode'=>$inviteCode
@@ -142,7 +145,7 @@ class ProjectController extends Controller
         return response([
             'message' => 'retrieved success',
             'project' => $projects->map(function($project){
-                return $project->only(['projectId','siteManagerId','projectName', 'projectDescription', 'startDate', 'endDate','progress','status','image','inviteCode']);
+                return $project->only(['projectId','siteManagerId','projectName','budget', 'projectDescription', 'startDate', 'endDate','progress','status','image','inviteCode']);
             })
         ], 200);
 
@@ -160,7 +163,7 @@ class ProjectController extends Controller
 
         return response([
             'message' => 'Retrieved successfully',
-            'project' => $project->only(['projectId','siteManagerId','projectName', 'projectDescription', 'startDate', 'endDate','inviteCode'])
+            'project' => $project->only(['projectId','siteManagerId','projectName','budget', 'projectDescription', 'startDate', 'endDate','inviteCode'])
         ], 200);
     }
 
@@ -174,6 +177,7 @@ class ProjectController extends Controller
             'projectDescription' => 'required|string',
             'startDate' => 'required|date',
             'endDate' => 'required|date',
+            'budget' => 'required|string',
             'progress' => 'required|string',
             'status' => 'required|string',
             'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -213,6 +217,7 @@ class ProjectController extends Controller
                 'projectName' => $request->projectName,
                 'projectDescription' => $request->projectDescription,
                 'startDate' => $request->startDate,
+                'budget' => $request->budget,
                 'endDate' => $request->endDate,
                 'status' => $request->status,
                 'progress' => $request->progress,
@@ -229,7 +234,7 @@ class ProjectController extends Controller
 
             return response([
                 'message' => 'Project updated successfully',
-                'project'=> $project->only(['projectId','siteManagerId','projectName', 'projectDescription', 'startDate', 'endDate','progress','status','image','inviteCode'])
+                'project'=> $project->only(['projectId','siteManagerId','projectName','budget','projectDescription', 'startDate', 'endDate','progress','status','image','inviteCode'])
             ], 201);
 
 
@@ -240,6 +245,7 @@ class ProjectController extends Controller
                 'startDate' => $request->startDate,
                 'endDate' => $request->endDate,
                 'status' => $request->status,
+                'budget' => $request->budget,
                 'progress' => $request->progress,
             ]);
 
@@ -253,7 +259,7 @@ class ProjectController extends Controller
 
             return response([
                 'message' => 'Project updated successfully',
-                'project'=> $project->only(['projectId','siteManagerId','projectName', 'projectDescription', 'startDate', 'endDate','progress','status','image','inviteCode'])
+                'project'=> $project->only(['projectId','siteManagerId','projectName', 'budget','projectDescription', 'startDate', 'endDate','progress','status','image','inviteCode'])
             ], 201);
 
         }

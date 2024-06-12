@@ -31,6 +31,7 @@ class Project extends Model
         'progress',
         'status',
         'image',
+        'budget',
         'inviteCode',
     ];
 

@@ -114,11 +114,11 @@ class WalletController extends Controller
         //     }
         // }
 
-        $transactions = $transactions->map(function ($transaction) {
-            return array_filter($transaction->toArray(), function ($value) {
-                return !is_null($value);
-            });
-        });
+//        $transactions = $transactions->map(function ($transaction) {
+//            return array_filter($transaction->toArray(), function ($value) {
+//                return !is_null($value);
+//            });
+//        });
 
         return response([
             'transactions'=> $transactions,

@@ -39,7 +39,7 @@ return [
     'paymentType' => env('PAYMENT_TYPE','BusinessPayment'),
     'serviceCode' => env('SERVICE_CODE','MPESAB2C'),
     'currencyCode' => env('CURRENCY','KES'),
-    'callbackUrl' => env('CALLBACK_URL','https://2d27-197-136-108-158.ngrok-free.app'),
+    'callbackUrl' => env('CALLBACK_URL','https://16ab-197-136-108-65.ngrok-free.app'),
 
 
 
@@ -55,7 +55,7 @@ return [
     'C2BserviceCode' => env('SERVICE_CODE','SITEMANAGER-COLLECTIONS'),
     'accountNumber' => env('ACCOUNT_NUMBER','TestAccount'),
     //'partnerCallbackUrl' => env('PARTNER_CALLBACK_URL','http://172.105.90.112/site-manager-backend/SiteManager'),
-    'partnerCallbackUrl' => env('PARTNER_CALLBACK_URL','https://2d27-197-136-108-158.ngrok-free.app'),
+    'partnerCallbackUrl' => env('PARTNER_CALLBACK_URL','https://16ab-197-136-108-65.ngrok-free.app'),
     'narration' => env('NARRATION','Making Test Payment'),
 
 ];

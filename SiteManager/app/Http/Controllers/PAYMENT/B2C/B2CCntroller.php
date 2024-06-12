@@ -49,16 +49,18 @@ class B2CCntroller extends Controller
 
                 $result = $this->bulkPayment($workerDetails, $uniqueId);
 
+                if(isset($result->success)){
+                    $success = $result->success;
 
-                if (isset($result->success) && $result->success === true) {
-                    // Payment succeeded
-                    $payerTransactionID = $result->data->payerTransactionID;
-                    $transactionID = $result->data->transactionID;
-                    $message = $result->data->message;
-                    $statusCode = $result->data->statusCode;
+                    if ( $success === true) {
+                        // Payment succeeded
+                        $payerTransactionID = $result->data->payerTransactionID;
+                        $transactionID = $result->data->transactionID;
+                        $message = $result->data->message;
+                        $statusCode = $result->data->statusCode;
 
 
-                    Transactions::create([
+                        Transactions::create([
                             'payType' => 'pay',
                             'statusCode' => $statusCode,
                             'payerTransactionID' => $payerTransactionID,
@@ -66,26 +68,26 @@ class B2CCntroller extends Controller
                             'message' => $message,
                             'workerId' => $payment['workerId'],
                             'projectId' => $payment['projectId'],
-                            'siteManagerId' => $request->siteManagerId,
+                            'siteManagerId' => $siteManager->siteManagerId,
                             'workDate' => $clockIns->clockInTime,
                             'payRate' => $worker->payRate,
                             'transactionAmount' => $worker->payRate,
                             'transactionStatus' => 'Pending',
-                    ]);
+                        ]);
 
-                    // Update payment status as processing
-                    $clockIns->paymentStatus = 'Pending';
-                    $clockIns->save();
+                        // Update payment status as processing
+                        $clockIns->paymentStatus = 'Pending';
+                        $clockIns->save();
 
 
-                    // Update held balance and available balance
-                    $wallet->availableBalance -= $worker->payRate;
-                    $wallet->heldBalance += $worker->payRate;
-                    $wallet->save();
-                } else {
-                    // Payment failed
-                    $message = $result->message;
-                    foreach ($clockIns as $clockIn) {
+                        // Update held balance and available balance
+                        $wallet->availableBalance -= $worker->payRate;
+                        $wallet->heldBalance += $worker->payRate;
+                        $wallet->save();
+                    } else {
+                        // Payment failed
+                        $message = $result->message;
+
                         Transactions::create([
                             'payType' => 'pay',
                             'statusCode' => '400',
@@ -93,20 +95,21 @@ class B2CCntroller extends Controller
                             'message' => $message,
                             'workerId' => $payment['workerId'],
                             'projectId' => $payment['projectId'],
-                            'siteManagerId' => $request->siteManagerId,
-                            'workDate' => $clockIn->clockInTime,
+                            'siteManagerId' => $siteManager->siteManagerId,
+                            'workDate' => $clockIns->clockInTime,
                             'payRate' => $worker->payRate,
                             'transactionAmount' => $worker->payRate,
                             'transactionStatus' => 'Failed',
 
                         ]);
-                    }
 
-                    return response([
-                        'message' => $message,
-                        'result' => $result,
-                        'success' => $result->success,
-                    ], 400);
+
+//                        return response([
+//                            'message' => $message,
+//                            'result' => $result,
+//                            'success' => $result->success,
+//                        ], 400);
+                    }
                 }
             }
 
@@ -123,137 +126,137 @@ class B2CCntroller extends Controller
     }
 
 
-//    public function initiatePayment(Request $request)
-//    {
-//        try {
-//
-//            $this->validatePaymentRequest($request);
-//            $siteManager = $this->findSiteManager($request->siteManagerId);
-//            $project = $this->findProject($request->projectId);
-//            $worker = $this->findWorker($request->workerId);
-//            $clockIns = $this->findClockIn($request);
-//            $wallet = $this->findSiteManagerWallet($request->siteManagerId);
-//
-//
-//            //}elseif($clockIn->paymentStatus === 'Pending'){
-//                // return response([
-//                 //    'message' => 'Payment already initiated',
-//               // ], 404);
-//            // }
-//
-//
-//
-//            $wallet = $this->findSiteManagerWallet($request->siteManagerId);
-//
-//            $totalPay = $worker->payRate * count($clockIns);
-//
-//            if ($wallet->availableBalance < $totalPay ) {
-//                return response([
-//                    'message' => 'Insufficient funds in your wallet',
-//                ], 404);
-//            }
-//
-//
-//
-//            $workerDetails[] = ['name'=>$worker->name, 'phoneNumber' => $worker->phoneNumber, 'amount' => $totalPay ];
-//            $uniqueId = Str::uuid()->toString();
-//
-//            //initiate payment
-//            $result = $this->bulkPayment($workerDetails, $uniqueId);
-//
-//            //TODO: use status code
-//            if(isset($result->success)){
-//                $success = $result->success;
-//
-//                if($success === true ){
-//                    $payerTransactionID = $result->data->payerTransactionID;
-//                    $transactionID = $result->data->transactionID;
-//                    $message = $result->data->message;
-//                    $statusCode = $result->data->statusCode;
-//
-//                foreach($clockIns as $clockIn){
-//                    Transactions::create([
-//                        'payType' => 'pay',
-//                        'statusCode' => $statusCode,
-//                        'payerTransactionID' => $payerTransactionID,
-//                        'transactionID' => $transactionID,
-//                        'message' => $message,
-//                        'workerId' => $request->workerId,
-//                        'projectId' => $request->projectId,
-//                        'siteManagerId' => $request->siteManagerId,
-//                        'workDate' => $clockIn->clockInTime,
-//                        'payRate' => $worker->payRate,
-//                        'transactionAmount' => $worker->payRate,
-//                        'transactionStatus' => 'Pending',
-//                    ]);
-//
-//                    //update payment status as processing
-//                    $clockIn->paymentStatus = 'Pending';
-//                    $clockIn->save();
-//
-//                }
-//
-//
-//                    //update held balance and available balance
-//                    $wallet->availableBalance -= $totalPay;
-//                    $wallet->heldBalance += $totalPay;
-//                    $wallet->save();
-//
-//
-//
-//
-//                    return response([
-//                        'message' => $message,
-//                        'clockins' => $clockIns,
-//                        'daysworked' => count($clockIns),
-//                        'totalPay' => $totalPay,
-//                        'payerTransactionID'=> $payerTransactionID,
-//                    ], 200);
-//
-//                }else{
-//                    $message = $result->message;
-//                    foreach($clockIns as $clockIn){
-//                    Transactions::create([
-//                        'payType' => 'pay',
-//                        'statusCode' => '400',
-//                        'payerTransactionID' => $uniqueId,
-//                        'message' => $message,
-//                        'workerId' => $request->workerId,
-//                        'projectId' => $request->projectId,
-//                        'siteManagerId' => $request->siteManagerId,
-//                        'workDate' => $clockIn->clockInTime,
-//                        'payRate' => $worker->payRate,
-//                        'transactionAmount' => $worker->payRate,
-//                        'transactionStatus' => 'Failed',
-//                    ]);
-//                 }
-//
-//                    return response([
-//                        'message' => $message,
-//                        'payerTransactionID'=> $uniqueId,
-//                        'result'=> $result,
-//                        'success' => $success,
-//                    ], 400);
-//                }
-//            }else{
-//                return response([
-//                    'message' => 'Payment request not sent',
-//                    'payerTransactionID'=> $uniqueId,
-//                ], 400);
-//            }
-//
-//
-//        //TODO: waitForPaymentResponse not needed
-//
-//        // rest of the code here
-//        }catch (\Exception $e) {
-//            Log::error($e->getMessage());
-//            return response([
-//                'message' => $e->getMessage(),
-//            ], 400);
-//        }
-//
-//    }
+    public function initiatePayment2(Request $request)
+    {
+        try {
+
+            $this->validatePaymentRequest($request);
+            $siteManager = $this->findSiteManager($request->siteManagerId);
+            $project = $this->findProject($request->projectId);
+            $worker = $this->findWorker($request->workerId);
+            $clockIns = $this->findClockIn($request);
+            $wallet = $this->findSiteManagerWallet($request->siteManagerId);
+
+
+            //}elseif($clockIn->paymentStatus === 'Pending'){
+                // return response([
+                 //    'message' => 'Payment already initiated',
+               // ], 404);
+            // }
+
+
+
+            $wallet = $this->findSiteManagerWallet($request->siteManagerId);
+
+            $totalPay = $worker->payRate * count($clockIns);
+
+            if ($wallet->availableBalance < $totalPay ) {
+                return response([
+                    'message' => 'Insufficient funds in your wallet',
+                ], 404);
+            }
+
+
+
+            $workerDetails[] = ['name'=>$worker->name, 'phoneNumber' => $worker->phoneNumber, 'amount' => $totalPay ];
+            $uniqueId = Str::uuid()->toString();
+
+            //initiate payment
+            $result = $this->bulkPayment($workerDetails, $uniqueId);
+
+            //TODO: use status code
+            if(isset($result->success)){
+                $success = $result->success;
+
+                if($success === true ){
+                    $payerTransactionID = $result->data->payerTransactionID;
+                    $transactionID = $result->data->transactionID;
+                    $message = $result->data->message;
+                    $statusCode = $result->data->statusCode;
+
+                foreach($clockIns as $clockIn){
+                    Transactions::create([
+                        'payType' => 'pay',
+                        'statusCode' => $statusCode,
+                        'payerTransactionID' => $payerTransactionID,
+                        'transactionID' => $transactionID,
+                        'message' => $message,
+                        'workerId' => $request->workerId,
+                        'projectId' => $request->projectId,
+                        'siteManagerId' => $request->siteManagerId,
+                        'workDate' => $clockIn->clockInTime,
+                        'payRate' => $worker->payRate,
+                        'transactionAmount' => $worker->payRate,
+                        'transactionStatus' => 'Pending',
+                    ]);
+
+                    //update payment status as processing
+                    $clockIn->paymentStatus = 'Pending';
+                    $clockIn->save();
+
+                }
+
+
+                    //update held balance and available balance
+                    $wallet->availableBalance -= $totalPay;
+                    $wallet->heldBalance += $totalPay;
+                    $wallet->save();
+
+
+
+
+                    return response([
+                        'message' => $message,
+                        'clockins' => $clockIns,
+                        'daysworked' => count($clockIns),
+                        'totalPay' => $totalPay,
+                        'payerTransactionID'=> $payerTransactionID,
+                    ], 200);
+
+                }else{
+                    $message = $result->message;
+                    foreach($clockIns as $clockIn){
+                    Transactions::create([
+                        'payType' => 'pay',
+                        'statusCode' => '400',
+                        'payerTransactionID' => $uniqueId,
+                        'message' => $message,
+                        'workerId' => $request->workerId,
+                        'projectId' => $request->projectId,
+                        'siteManagerId' => $request->siteManagerId,
+                        'workDate' => $clockIn->clockInTime,
+                        'payRate' => $worker->payRate,
+                        'transactionAmount' => $worker->payRate,
+                        'transactionStatus' => 'Failed',
+                    ]);
+                 }
+
+                    return response([
+                        'message' => $message,
+                        'payerTransactionID'=> $uniqueId,
+                        'result'=> $result,
+                        'success' => $success,
+                    ], 400);
+                }
+            }else{
+                return response([
+                    'message' => 'Payment request not sent',
+                    'payerTransactionID'=> $uniqueId,
+                ], 400);
+            }
+
+
+        //TODO: waitForPaymentResponse not needed
+
+        // rest of the code here
+        }catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return response([
+                'message' => $e->getMessage(),
+            ], 400);
+        }
+
+    }
 
     /**
      * bulk payment TMS
@@ -377,16 +380,7 @@ class B2CCntroller extends Controller
         if (!$query) {
             abort(400, "clocked in with Id:: .$clockId. not found! or already paid");
         }
-//        if($request->endDate == null){
-//            foreach($clockIns as $clockIn){
-//                if ($clockIn->paymentStatus === 'paid') {
-//                    abort(404, 'Already paid!');
-//                }
-//            }
-//            return $clockIns;
-//        }else{
-//            return $clockIns;
-//        }
+
         return $query;
     }
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Advertise;
 
 use App\Http\Controllers\Controller;
+use App\Models\Advertiser;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 
@@ -134,7 +135,7 @@ class AdvertiserController extends Controller
 
 
     public function destroy($advertiserId){
-        $advertiser = AdvertiserController::where('advertiserId', $advertiserId)->first();
+        $advertiser = Advertiser::where('advertiserId', $advertiserId)->first();
 
         if (!$advertiser) {
             return response([
